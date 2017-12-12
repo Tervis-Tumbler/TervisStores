@@ -1,4 +1,7 @@
-﻿function Get-iVMSGitRepositoryPath {
+﻿$ModulePath = (Get-Module -ListAvailable TervisStores).ModuleBase
+. $ModulePath\Definition.ps1
+
+function Get-iVMSGitRepositoryPath {
     $ADDomain = Get-ADDomain -Current LocalComputer
     "\\$($ADDomain.DNSRoot)\applications\GitRepository\iVMS-4200"
 }
@@ -18,5 +21,27 @@ function Install-TervisiVMSConfiguration {
         } else {
             Write-Warning "iVMS-4200 not installed on $ComputerName"
         }
+    }
+}
+
+function Get-StoreNameFromADUser {
+    $OrganizationalUnit = Get-ADOrganizationalUnit -Filter * | 
+    Where-Object DistinguishedName -Match "OU=Back Office,OU=Remote,OU=Users"
+
+    Get-ADUser -SearchBase $OrganizationalUnit.DistinguishedName -Filter * |
+    Select-Object -ExpandProperty GivenName
+}
+
+function Get-StoreEmailLocalPartFromName {
+    $StoreNames = Get-StoreNameFromADUser
+    $StoreNamesWithoutSpaces = $StoreNames.replace(" ", "")
+    
+    $StoreNamesWithoutSpaces
+}
+
+function Get-StoreEmailAddressesFromName {
+    Get-StoreEmailLocalPartFromName | 
+    ForEach-Object { 
+        "$_@TervisStore.com"
     }
 }
