@@ -45,3 +45,20 @@ function Get-StoreEmailAddressesFromName {
         "$_@TervisStore.com"
     }
 }
+
+function New-MigaduStoreEmailBox {
+    param (
+        [Parameter(Mandatory)]$XAuthorizationToken,
+        [Parameter(Mandatory)]$XAuthorizationEmail
+    )
+    foreach ($Store in $StoreDefinition) {
+        $Credential = Get-PasswordstateCredential -PasswordID $Store.EmailAccountPasswordStateID
+        $Domain = $Credential.UserName -split "@" | select -First 1 -Skip 1
+        $EmailAddressLocalPart = $Credential.UserName -split "@" | select -First 1
+        $MigaduMailbox = Get-MigaduMailbox -Domain $Domain -EmailAddressLocalPart $EmailAddressLocalPart -XAuthorizationToken $XAuthorizationToken -XAuthorizationEmail $XAuthorizationEmail -ErrorAction SilentlyContinue
+
+        if (-not $MigaduMailbox) {
+            New-MigaduMailbox -XAuthorizationToken $XAuthorizationToken -XAuthorizationEmail $XAuthorizationEmail -Domain $Domain -EmailAddressLocalPart $EmailAddressLocalPart -DisplayName "$($Store.Name) Store" -Password $Credential.GetNetworkCredential().password
+        }
+    }
+}

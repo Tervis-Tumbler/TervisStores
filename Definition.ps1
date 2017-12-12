@@ -189,12 +189,12 @@
     EmailAddress = "SedonaStore@TervisStore.com"
 },
 [PSCustomObject]@{
-    Name = "St Augustine"
+    Name = "St Armands Circle"
     EmailAccountPasswordStateID = "5280" 
     EmailAddress = "StArmandsCircle@TervisStore.com"
 },
 [PSCustomObject]@{
-    Name = ""
+    Name = "St Augustine"
     EmailAccountPasswordStateID = "5281" 
     EmailAddress = "StAugustine@TervisStore.com"
 },
