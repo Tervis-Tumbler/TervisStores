@@ -62,3 +62,12 @@ function New-MigaduStoreEmailBox {
         }
     }
 }
+
+function Install-Office2016OnBackOfficeComputers {
+    $BackOfficeComputers = Get-BackOfficeComputers -Online
+
+    $Responses = Start-ParallelWork -ScriptBlock {
+        param($Parameter)
+        Install-TervisOffice2016VLPush -ComputerName $Parameter
+    } -Parameters $BackOfficeComputers
+}
