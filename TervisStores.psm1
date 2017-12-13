@@ -71,3 +71,51 @@ function Install-Office2016OnBackOfficeComputers {
         Install-TervisOffice2016VLPush -ComputerName $Parameter
     } -Parameters $BackOfficeComputers
 }
+
+function Set-StoreMigaduMailboxEnvironmentVariables {
+    $BackOfficeComputers = Get-BackOfficeComputers -Online
+
+    Foreach ($ComputerName in $BackOfficeComputers) {
+        Get-TervisStoreDefinition -
+        Set-EnvironmentVariable -Name MigaduMailboxDisplayName -ComputerName $ComputerName
+        Set-EnvironmentVariable -Name MigaduEmailAddress -ComputerName $ComputerName
+    }
+}
+
+function Get-TervisStoreDefinition {
+    $StoreDefinition |
+    Add-TervisStoreDefinitionCustomProperty -PassThru
+}
+
+function Add-TervisStoreDefinitionCustomProperty {
+    param (
+        [Parameter(Mandatory,ValueFromPipeline)]$Object,
+        [Switch]$PassThru
+    )
+    process {
+        $Object |
+        Add-Member -MemberType ScriptProperty -Name EmailAddress -Force -Value {
+            Get-PasswordstateCredential -PasswordID $This.EmailAccountPasswordStateID |
+            Select-Object -ExpandProperty UserName
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name Computer -Force -Value {
+            $StoreNumber = $This.Number
+            $FilterValue = "$StoreNumber*"
+            Get-ADComputer -Filter {Name -like $FilterValue}
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name BackOffice -Force -Value {
+            $This.Computer |
+            Where-Object Name -Match "BO"
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name Register -Force -Value {
+            $This.Computer |
+            Where-Object Name -Match "POS"
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name NumberOfBackOffice -Force -Value {
+            $This.BackOffice | Measure-Object | Select-Object -ExpandProperty Count
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name NumberOfRegister -Force -Value {
+            $This.Register | Measure-Object | Select-Object -ExpandProperty Count
+        } -PassThru:$PassThru 
+    }
+}

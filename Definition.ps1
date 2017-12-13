@@ -1,225 +1,225 @@
 ﻿$StoreDefinition = [PSCustomObject]@{
     Name = "Annapolis"
+    Number = 3026
     EmailAccountPasswordStateID = "5241"
-    EmailAddress = "Annapolis@TervisStore.com"
 },
 [PSCustomObject]@{
     Name = "Asheville"
+    Number = 3028
     EmailAccountPasswordStateID = "5242"
-    EmailAddress = "Asheville@TervisStore.com"
 },
 [PSCustomObject]@{
     Name = "Atlanta"
-    EmailAccountPasswordStateID = "5243" 
-    EmailAddress = "Atlanta@TervisStore.com"
+    Number = 3052
+    EmailAccountPasswordStateID = "5243"    
 },
 [PSCustomObject]@{
     Name = "Austin"
-    EmailAccountPasswordStateID = "5244" 
-    EmailAddress = "Austin@TervisStore.com"
+    Number = 3025
+    EmailAccountPasswordStateID = "5244"
 },
 [PSCustomObject]@{
     Name = "Blowing Rock"
-    EmailAccountPasswordStateID = "5245" 
-    EmailAddress = "BlowingRock@TervisStore.com"
+    Number = 3016
+    EmailAccountPasswordStateID = "5245"
 },
 [PSCustomObject]@{
     Name = "Boston"
-    EmailAccountPasswordStateID = "5246" 
-    EmailAddress = "Boston@TervisStore.com"
+    Number = 3043
+    EmailAccountPasswordStateID = "5246"
 },
 [PSCustomObject]@{
     Name = "Branson"
-    EmailAccountPasswordStateID = "5247" 
-    EmailAddress = "Branson@TervisStore.com"
+    Number = 3003
+    EmailAccountPasswordStateID = "5247"
 },
 [PSCustomObject]@{
     Name = "Charleston"
-    EmailAccountPasswordStateID = "5248" 
-    EmailAddress = "Charleston@TervisStore.com"
+    Number = 3002
+    EmailAccountPasswordStateID = "5248"
 },
 [PSCustomObject]@{
     Name = "Cincinnati"
+    Number = 3046
     EmailAccountPasswordStateID = "5249"
-    EmailAddress = "Cincinnati@TervisStore.com"
 },
 [PSCustomObject]@{
     Name = "Columbus"
-    EmailAccountPasswordStateID = "5250" 
-    EmailAddress = "Columbus@TervisStore.com"
+    Number = 3045
+    EmailAccountPasswordStateID = "5250"
 },
 [PSCustomObject]@{
     Name = "Destin"
+    Number = 3034
     EmailAccountPasswordStateID = "5251" 
-    EmailAddress = "Destin@TervisStore.com"
 },
 [PSCustomObject]@{
     Name = "Frankenmuth"
-    EmailAccountPasswordStateID = "5252" 
-    EmailAddress = "Frankenmuth@TervisStore.com"
+    Number = 3007
+    EmailAccountPasswordStateID = "5252"
 },
 [PSCustomObject]@{
     Name = "Ft Myers"
-    EmailAccountPasswordStateID = "5253" 
-    EmailAddress = "FtMyers@TervisStore.com"
+    Number = 1040
+    EmailAccountPasswordStateID = "5253"
 },
 [PSCustomObject]@{
     Name = "Ft Worth"
-    EmailAccountPasswordStateID = "5254" 
-    EmailAddress = "FtWorth@TervisStore.com"
+    Number = 3044
+    EmailAccountPasswordStateID = "5254"
 },
 [PSCustomObject]@{
     Name = "Gatlinburg"
-    EmailAccountPasswordStateID = "5255" 
-    EmailAddress = "Gatlinburg@TervisStore.com"
+    Number = 3001
+    EmailAccountPasswordStateID = "5255"
 },
 [PSCustomObject]@{
     Name = "Indianapolis"
-    EmailAccountPasswordStateID = "5256" 
-    EmailAddress = "Indianapolis@TervisStore.com"
+    Number = 3048
+    EmailAccountPasswordStateID = "5256"
 },
 [PSCustomObject]@{
     Name = "Jacksonville"
-    EmailAccountPasswordStateID = "5257" 
-    EmailAddress = "Jacksonville@TervisStore.com"
+    Number = 3030
+    EmailAccountPasswordStateID = "5257"
 },
 [PSCustomObject]@{
     Name = "Kansas City"
-    EmailAccountPasswordStateID = "5258" 
-    EmailAddress = "KansasCity@TervisStore.com"
+    Number = 3050
+    EmailAccountPasswordStateID = "5258"
 },
 [PSCustomObject]@{
     Name = "Key West"
-    EmailAccountPasswordStateID = "5259" 
-    EmailAddress = "KeyWest@TervisStore.com"
+    Number = 1060
+    EmailAccountPasswordStateID = "5259"    
 },
 [PSCustomObject]@{
     Name = "Lake Arrowhead"
-    EmailAccountPasswordStateID = "5260" 
-    EmailAddress = "LakeArrowhead@TervisStore.com"
+    Number = 3018
+    EmailAccountPasswordStateID = "5260"
 },
 [PSCustomObject]@{
     Name = "Mall of America"
-    EmailAccountPasswordStateID = "5261" 
-    EmailAddress = "MallofAmerica@TervisStore.com"
+    Number = 3015
+    EmailAccountPasswordStateID = "5261"
 },
 [PSCustomObject]@{
     Name = "Miracle Mile"
-    EmailAccountPasswordStateID = "5262" 
-    EmailAddress = "MiracleMile@TervisStore.com"
+    Number = 3022
+    EmailAccountPasswordStateID = "5262"
 },
 [PSCustomObject]@{
     Name = "Monterey"
-    EmailAccountPasswordStateID = "5263" 
-    EmailAddress = "Monterey@TervisStore.com"
+    Number = 3023
+    EmailAccountPasswordStateID = "5263"
 },
 [PSCustomObject]@{
     Name = "Myrtle Beach"
-    EmailAccountPasswordStateID = "5264" 
-    EmailAddress = "MyrtleBeach@TervisStore.com"
+    Number = 2010
+    EmailAccountPasswordStateID = "5264"
 },
 [PSCustomObject]@{
     Name = "Naples"
-    EmailAccountPasswordStateID = "5265" 
-    EmailAddress = "Naples@TervisStore.com"
+    Number = 3024
+    EmailAccountPasswordStateID = "5265"
 },
 [PSCustomObject]@{
     Name = "National Harbor"
-    EmailAccountPasswordStateID = "5266" 
-    EmailAddress = "NationalHarbor@TervisStore.com"
+    Number = 3032
+    EmailAccountPasswordStateID = "5266"
 },
 [PSCustomObject]@{
     Name = "New Orleans"
-    EmailAccountPasswordStateID = "5267" 
-    EmailAddress = "NewOrleans@TervisStore.com"
+    Number = 3042
+    EmailAccountPasswordStateID = "5267"
 },
 [PSCustomObject]@{
     Name = "Newport"
-    EmailAccountPasswordStateID = "5268" 
-    EmailAddress = "Newport@TervisStore.com"
+    Number = 3033
+    EmailAccountPasswordStateID = "5268"
 },
 [PSCustomObject]@{
     Name = "Orange Beach"
-    EmailAccountPasswordStateID = "5269" 
-    EmailAddress = "OrangeBeach@TervisStore.com"
+    Number = 3008
+    EmailAccountPasswordStateID = "5269"
 },
 [PSCustomObject]@{
     Name = "Orlando"
-    EmailAccountPasswordStateID = "5270" 
-    EmailAddress = "Orlando@TervisStore.com"
+    Number = 3041
+    EmailAccountPasswordStateID = "5270"
 },
 [PSCustomObject]@{
     Name = "Osprey"
-    EmailAccountPasswordStateID = "5271" 
-    EmailAddress = "Osprey@TervisStore.com"
+    Number = 1010
+    EmailAccountPasswordStateID = "5271"
 },
 [PSCustomObject]@{
     Name = "Palm Beach"
-    EmailAccountPasswordStateID = "5273" 
-    EmailAddress = "PalmBeach@TervisStore.com"
+    Number = 1020
+    EmailAccountPasswordStateID = "5273"
 },
 [PSCustomObject]@{
     Name = "Panama City Beach"
-    EmailAccountPasswordStateID = "5274" 
-    EmailAddress = "PanamaCityBeach@TervisStore.com"
+    Number = 1050
+    EmailAccountPasswordStateID = "5274"
 },
 [PSCustomObject]@{
     Name = "Pigeon Forge"
-    EmailAccountPasswordStateID = "5275" 
-    EmailAddress = "PigeonForge@TervisStore.com"
+    Number = 3029
+    EmailAccountPasswordStateID = "5275"
 },
 [PSCustomObject]@{
     Name = "San Antonio"
-    EmailAccountPasswordStateID = "5276" 
-    EmailAddress = "SanAntonio@TervisStore.com"
+    Number = 3014
+    EmailAccountPasswordStateID = "5276"
 },
 [PSCustomObject]@{
     Name = "San Diego"
-    EmailAccountPasswordStateID = "5277" 
-    EmailAddress = "SanDiego@TervisStore.com"
+    Number = 3020
+    EmailAccountPasswordStateID = "5277"
 },
 [PSCustomObject]@{
     Name = "Savannah"
-    EmailAccountPasswordStateID = "5278" 
-    EmailAddress = "Savannah@TervisStore.com"
+    Number = 3005
+    EmailAccountPasswordStateID = "5278"
 },
 [PSCustomObject]@{
     Name = "Sedona Store"
-    EmailAccountPasswordStateID = "5279" 
-    EmailAddress = "SedonaStore@TervisStore.com"
+    Number = 3039
+    EmailAccountPasswordStateID = "5279"
 },
 [PSCustomObject]@{
     Name = "St Armands Circle"
-    EmailAccountPasswordStateID = "5280" 
-    EmailAddress = "StArmandsCircle@TervisStore.com"
+    Number = 3035
+    EmailAccountPasswordStateID = "5280"
 },
 [PSCustomObject]@{
     Name = "St Augustine"
-    EmailAccountPasswordStateID = "5281" 
-    EmailAddress = "StAugustine@TervisStore.com"
+    Number = 3040
+    EmailAccountPasswordStateID = "5281"
 },
 [PSCustomObject]@{
     Name = "St Pete"
-    EmailAccountPasswordStateID = "5282" 
-    EmailAddress = "StPete@TervisStore.com"
+    Number = 3049
+    EmailAccountPasswordStateID = "5282"
 },
 [PSCustomObject]@{
     Name = "Tampa"
-    EmailAccountPasswordStateID = "5283" 
-    EmailAddress = "Tampa@TervisStore.com"
+    Number = 3047
+    EmailAccountPasswordStateID = "5283"
 },
 [PSCustomObject]@{
     Name = "The Villages"
-    EmailAccountPasswordStateID = "5284" 
-    EmailAddress = "TheVillages@TervisStore.com"
+    Number = 1030
+    EmailAccountPasswordStateID = "5284"
 },
 [PSCustomObject]@{
     Name = "Virginia Beach"
-    EmailAccountPasswordStateID = "5285" 
-    EmailAddress = "VirginiaBeach@TervisStore.com"
+    Number = 3036
+    EmailAccountPasswordStateID = "5285"
 },
 [PSCustomObject]@{
     Name = "Williamsburg"
-    EmailAccountPasswordStateID = "5286" 
-    EmailAddress = "Williamsburg@TervisStore.com"
+    Number = 3038
+    EmailAccountPasswordStateID = "5286"
 }
