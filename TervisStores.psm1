@@ -83,7 +83,11 @@ function Set-StoreMigaduMailboxEnvironmentVariables {
 }
 
 function Get-TervisStoreDefinition {
+    param (
+        $Name
+    )
     $StoreDefinition |
+    Where-Object { -Not $Name -or $_.Name -Match $Name } |
     Add-TervisStoreDefinitionCustomProperty -PassThru
 }
 
@@ -94,8 +98,11 @@ function Add-TervisStoreDefinitionCustomProperty {
     )
     process {
         $Object |
+        Add-Member -MemberType ScriptProperty -Name MigaduMailboxCredential -Force -Value {
+            Get-PasswordstateCredential -PasswordID $This.EmailAccountPasswordStateID
+        } -PassThru |
         Add-Member -MemberType ScriptProperty -Name EmailAddress -Force -Value {
-            Get-PasswordstateCredential -PasswordID $This.EmailAccountPasswordStateID |
+            $This.MigaduMailboxCredential |
             Select-Object -ExpandProperty UserName
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name Computer -Force -Value {
