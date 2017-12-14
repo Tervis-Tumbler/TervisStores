@@ -129,3 +129,13 @@ function Add-TervisStoreDefinitionCustomProperty {
         } -PassThru:$PassThru 
     }
 }
+
+function Install-OutlookMigaduMailProfile {
+& "C:\Program Files (x86)\Microsoft Office\root\Office16\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF" 
+"C:\Program Files (x86)\Microsoft Office\Office16\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF"
+"C:\Program Files (x86)\Microsoft Office\Office14\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF"
+}
+
+function Edit-OutlookMigaduMailProfile {
+"\\tervis.prv\applications\Installers\Microsoft\Office 2016 Professional Plus Volume Licensing Edition\Office Professional Plus 2016 32Bit Volume Licensing Edition\setup.exe" /admin
+}
