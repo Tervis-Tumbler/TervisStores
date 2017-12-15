@@ -66,7 +66,7 @@ function New-MigaduStoreEmailBox {
 function Install-Office2016OnBackOfficeComputers {
     $BackOfficeComputers = Get-BackOfficeComputers -Online
 
-    $Responses = Start-ParallelWork -ScriptBlock {
+    Start-ParallelWork -ScriptBlock {
         param($Parameter)
         Install-TervisOffice2016VLPush -ComputerName $Parameter
     } -Parameters $BackOfficeComputers
@@ -132,10 +132,22 @@ function Add-TervisStoreDefinitionCustomProperty {
 
 function Install-OutlookMigaduMailProfile {
 & "C:\Program Files (x86)\Microsoft Office\root\Office16\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF" 
-"C:\Program Files (x86)\Microsoft Office\Office16\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF"
-"C:\Program Files (x86)\Microsoft Office\Office14\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF"
+& "C:\Program Files (x86)\Microsoft Office\Office16\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF"
+& "C:\Program Files (x86)\Microsoft Office\Office14\OUTLOOK.EXE" /importprf "\\tervis.prv\departments\Stores\Stores Shared\Migadu\OutlookMigaduProfile.PRF"
 }
 
 function Edit-OutlookMigaduMailProfile {
-"\\tervis.prv\applications\Installers\Microsoft\Office 2016 Professional Plus Volume Licensing Edition\Office Professional Plus 2016 32Bit Volume Licensing Edition\setup.exe" /admin
+& "\\tervis.prv\applications\Installers\Microsoft\Office 2016 Professional Plus Volume Licensing Edition\Office Professional Plus 2016 32Bit Volume Licensing Edition\setup.exe" /admin
+}
+
+function Restart-BackOfficeComputersNotRebootedSinceDate {
+    param (
+        [Parameter(Mandatory)][DateTime]$DateTimeOfRestart,
+        [DateTime]$HaventRebootedSinceDate,
+        $Message
+    )
+    $BackOfficeComputerNames = Get-BackOfficeComputers -Online
+    $BackOfficeComputerNames | ForEach-Object {
+        Restart-TervisComputerIfNotRebootedSinceDateTime -DateTimeOfRestart $DateTimeOfRestart -HaventRebootedSinceDate $HaventRebootedSinceDate -ComputerName $_ -Message $Message
+    }
 }
