@@ -112,6 +112,12 @@ function Add-TervisStoreDefinitionCustomProperty {
     )
     process {
         $Object |
+        Add-Member -MemberType ScriptProperty -Name BackOfficeUserCredential -Force -Value {
+            Get-PasswordstateCredential -PasswordID $This.BackOfficeAccountPasswordStateID
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name BackOfficeUserName -Force -Value {
+            $This.BackOfficeUserCredential.UserName
+        } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MigaduMailboxCredential -Force -Value {
             Get-PasswordstateCredential -PasswordID $This.EmailAccountPasswordStateID
         } -PassThru |
@@ -170,4 +176,24 @@ function Restart-BackOfficeComputersNotRebootedSinceDate {
     $BackOfficeComputerNames | ForEach-Object {
         Restart-TervisComputerIfNotRebootedSinceDateTime -DateTimeOfRestart $DateTimeOfRestart -HaventRebootedSinceDate $HaventRebootedSinceDate -ComputerName $_ -Message $Message
     }
+}
+
+function New-StoreEmailAddressContact {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    Import-TervisExchangePSSession
+    
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $OrganizationalUnit = Get-ADOrganizationalUnit -filter * | where DistinguishedName -Match "OU=Contacts,OU=Stores"
+        $DisplayName = "$($StoreDefinition.Name) Store"
+        New-ExchangeMailContact -FirstName $StoreDefinition.Name -LastName Store -Name $DisplayName -ExternalEmailAddress $StoreDefinition.EmailAddress -OrganizationalUnit $OrganizationalUnit.Name
+    }
+}
+
+function Sync-StoreDistributionGroupsWithContacts {
+    $OrganizationalUnit = Get-ADOrganizationalUnit -filter * | where DistinguishedName -Match "OU=Contacts,OU=Stores"
+    $StoreContacts = Get-ADObject -Filter * -SearchBase $OrganizationalUnit.DistinguishedName
+
+    $Memebers = Get-ADGroupMember -Identity "Region 1 Stores"
+
+    $Memebers
 }
