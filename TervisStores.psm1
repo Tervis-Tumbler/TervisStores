@@ -151,6 +151,15 @@ function Edit-OutlookMigaduMailProfile {
 & "\\tervis.prv\applications\Installers\Microsoft\Office 2016 Professional Plus Volume Licensing Edition\Office Professional Plus 2016 32Bit Volume Licensing Edition\setup.exe" /admin
 }
 
+function Invoke-InstallEnvironmentVariablesAndTriggerRebootForTomorrow {
+    param (
+        [Parameter(Mandatory)]$ComputerName
+    )
+    Set-StoreMigaduMailboxEnvironmentVariables -ComputerName $ComputerName
+    $TomorrowAt430am = [DateTime]::Today.AddDays(1).AddHours(4).AddMinutes(30)
+    Restart-TervisComputer -DateTimeOfRestart $TomorrowAt430am -ComputerName $ComputerName -Message "Rebooted needed to complete change made by IT"
+}
+
 function Restart-BackOfficeComputersNotRebootedSinceDate {
     param (
         [Parameter(Mandatory)][DateTime]$DateTimeOfRestart,
