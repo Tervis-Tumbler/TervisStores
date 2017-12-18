@@ -72,10 +72,21 @@ function Install-Office2016OnBackOfficeComputers {
     } -Parameters $BackOfficeComputers
 }
 
-function Set-StoreMigaduMailboxEnvironmentVariables {
-    $BackOfficeComputerNames = Get-BackOfficeComputers -Online
+function Set-StoreMigaduMailboxEnvironmentVariablesOnAllBackOffice {
+    process {
+        $BackOfficeComputerNames = Get-BackOfficeComputers -Online
 
-    Foreach ($ComputerName in $BackOfficeComputerNames) {
+        Foreach ($ComputerName in $BackOfficeComputerNames) {
+            Set-StoreMigaduMailboxEnvironmentVariables -ComputerName $ComputerName
+        }
+    }
+}
+
+function Set-StoreMigaduMailboxEnvironmentVariables {
+    param (
+        [Parameter(ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
         $StoreNumber = $ComputerName.substring(0,4)
         $StoreDefinition = Get-TervisStoreDefinition -Number $StoreNumber
         Set-EnvironmentVariable -Name MigaduMailboxDisplayName -ComputerName $ComputerName -Value "$($StoreDefinition.Name) Store" -Target Machine
