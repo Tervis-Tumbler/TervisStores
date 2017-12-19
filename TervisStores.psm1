@@ -125,6 +125,14 @@ function Add-TervisStoreDefinitionCustomProperty {
             $This.MigaduMailboxCredential |
             Select-Object -ExpandProperty UserName
         } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name MailContact -Force -Value {
+            Import-TervisExchangePSSession
+            Get-ExchangeMailContact -Identity $This.EmailAddress
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name MailContactADObject -Force -Value {
+            $EmailAddress = $This.EmailAddress
+            Get-ADObject -Filter { Mail -eq $EmailAddress }
+        } -PassThru |
         Add-Member -MemberType ScriptProperty -Name Computer -Force -Value {
             $StoreNumber = $This.Number
             $FilterValue = "$StoreNumber*"
@@ -189,11 +197,18 @@ function New-StoreEmailAddressContact {
     }
 }
 
-function Sync-StoreDistributionGroupsWithContacts {
-    $OrganizationalUnit = Get-ADOrganizationalUnit -filter * | where DistinguishedName -Match "OU=Contacts,OU=Stores"
-    $StoreContacts = Get-ADObject -Filter * -SearchBase $OrganizationalUnit.DistinguishedName
+function Sync-StoreDistributionGroupsWithContacts {   
+    $StoreDefinitions = Get-TervisStoreDefinition
+    $BackOfficeUserNames = $StoreDefinitions.BackOfficeUserName
+    
+    $Region1Stores = Get-ADGroupMember -Identity "Region 1 Stores" | 
+    Where-Object SamAccountName -in $BackOfficeUserNames |
+    Select-Object -ExpandProperty SamAccountName 
+    
+    $Region2Stores = Get-ADGroupMember -Identity "Region 2 Stores" | 
+    Where-Object SamAccountName -in $BackOfficeUserNames |
+    Select-Object -ExpandProperty SamAccountName
 
-    $Memebers = Get-ADGroupMember -Identity "Region 1 Stores"
+    
 
-    $Memebers
 }
