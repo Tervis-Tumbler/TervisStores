@@ -129,6 +129,10 @@ function Add-TervisStoreDefinitionCustomProperty {
             Import-TervisExchangePSSession
             Get-ExchangeMailContact -Identity $This.EmailAddress
         } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name TervisDotComDistributionGroup -Force -Value {
+            Import-TervisExchangePSSession
+            Get-ExchangeDistributionGroup -Identity "$($This.Name) tervis.com email address Distribution Group"
+        } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MailContactADObject -Force -Value {
             $EmailAddress = $This.EmailAddress
             Get-ADObject -Filter { Mail -eq $EmailAddress }
@@ -210,5 +214,14 @@ function Sync-StoreDistributionGroupsWithContacts {
     Select-Object -ExpandProperty SamAccountName
 
     
+    $StoreDefinitions | 
+    ForEach-Object {
+        "$($_.Name) tervis.com email address Distribution Group"
+    } |
+    New-TervisDistributionGroup
 
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $StoreDefinition.TervisDotComDistributionGroup | 
+        Add-ExchangeDistributionGroupMember -Member $StoreDefinition.MailContactADObject.DistinguishedName -ErrorAction SilentlyContinue
+    }
 }
