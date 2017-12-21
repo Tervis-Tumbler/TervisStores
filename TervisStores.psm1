@@ -284,3 +284,33 @@ function Set-StoresOldMailboxToHiddinInGAL {
     $StoreDefinitions = Get-TervisStoreDefinition
     $StoreDefinitions.ExchangeMailbox | set-ExchangeMailbox -HiddenFromAddressListsEnabled $true
 }
+
+function Set-StoresADAccountsAsMembersOfTervis-Everyone {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    Get-ADGroup -Identity "Tervis - Everyone" |
+    Add-ADGroupMember -Members $StoreDefinitions.BackOfficeADUser 
+
+    Get-ADGroup -Identity "Stores" |
+    Add-ADGroupMember -Members $StoreDefinitions.BackOfficeADUser 
+
+    $Members = Get-ADGroup -Identity "Stores" | 
+    Get-ADGroupMember 
+    Add-ADGroupMember -Identity "Stores-1367133941" -Members $Members
+    
+    Get-ADGroup -Identity "Stores-1367133941" | Get-ADGroupMember
+
+    Disable-ExchangeDistributionGroup -Identity "Stores"
+
+
+
+}
+function Invoke-RemoveStoresFromDistroGroupAndAddMailContact {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    $Group = Get-ADGroup -Identity "Stores-1367133941"
+    
+    foreach ($StoreDefinition in $StoreDefinitions) {        
+        $Group | Set-ADGroup -Add @{Member = $StoreDefinition.MailContactADObject.DistinguishedName}
+        $Group | Remove-ADGroupMember -Members $StoreDefinition.BackOfficeADUser -Confirm:$false
+    }
+}
+
