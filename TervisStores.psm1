@@ -133,6 +133,10 @@ function Add-TervisStoreDefinitionCustomProperty {
             Import-TervisExchangePSSession
             Get-ExchangeDistributionGroup -Identity "$($This.Name) tervis.com email address Distribution Group"
         } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name ExchangeMailbox -Force -Value {
+            Import-TervisExchangePSSession
+            Get-ExchangeMailbox -Identity $This.BackOfficeUserName
+        } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MailContactADObject -Force -Value {
             $EmailAddress = $This.EmailAddress
             Get-ADObject -Filter { Mail -eq $EmailAddress }
@@ -223,5 +227,38 @@ function Sync-StoreDistributionGroupsWithContacts {
     foreach ($StoreDefinition in $StoreDefinitions) {
         $StoreDefinition.TervisDotComDistributionGroup | 
         Add-ExchangeDistributionGroupMember -Member $StoreDefinition.MailContactADObject.DistinguishedName -ErrorAction SilentlyContinue
+    }
+
+}
+
+function Move-StoreTervisDotComAddressesToDistributionGroup {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $TervisDotComEmailAddressSMTPForm = $StoreDefinition.ExchangeMailbox.EmailAddresses |
+        Where-Object {$_ -match "tervis.com"}
+        
+        if ($TervisDotComEmailAddressSMTPForm) {
+            $OnMicrosoftEmailAddress = (
+                $StoreDefinition.ExchangeMailbox.EmailAddresses |
+                Where-Object {$_ -match "mail.onmicrosoft.com"}
+            ) -split ":" |
+            Select-Object -First 1 -Skip 1
+        
+            $StoreDefinition.ExchangeMailbox | 
+            Set-ExchangeMailbox -PrimarySmtpAddress $OnMicrosoftEmailAddress -EmailAddressPolicyEnabled:$false
+        
+            $StoreDefinition.ExchangeMailbox | 
+            Set-ExchangeMailbox -EmailAddresses @{Remove = $TervisDotComEmailAddressSMTPForm} -EmailAddressPolicyEnabled:$false
+             #The next line errors if something internal to exchange doesn't have enough time to realize the address is no longer on the mailbox
+
+            $TervisDotComEmailAddress = $TervisDotComEmailAddressSMTPForm -split ":" |
+            Select-Object -First 1 -Skip 1
+
+            do {
+                Start-Sleep -Seconds 10
+                $StoreDefinition.TervisDotComDistributionGroup |
+                Set-ExchangeDistributionGroup -PrimarySmtpAddress $TervisDotComEmailAddress -EmailAddressPolicyEnabled:$false
+            } while ($StoreDefinition.TervisDotComDistributionGroup.PrimarySmtpAddress -ne $TervisDotComEmailAddress)
+        }
     }
 }
