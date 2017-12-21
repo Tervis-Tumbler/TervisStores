@@ -118,6 +118,9 @@ function Add-TervisStoreDefinitionCustomProperty {
         Add-Member -MemberType ScriptProperty -Name BackOfficeUserName -Force -Value {
             $This.BackOfficeUserCredential.UserName
         } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name BackOfficeADUser -Force -Value {
+            Get-AdUser -Identity $This.BackOfficeUserName -Properties *
+        } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MigaduMailboxCredential -Force -Value {
             Get-PasswordstateCredential -PasswordID $This.EmailAccountPasswordStateID
         } -PassThru |
@@ -139,7 +142,7 @@ function Add-TervisStoreDefinitionCustomProperty {
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MailContactADObject -Force -Value {
             $EmailAddress = $This.EmailAddress
-            Get-ADObject -Filter { Mail -eq $EmailAddress }
+            Get-ADObject -Filter { Mail -eq $EmailAddress } -Properties *
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name Computer -Force -Value {
             $StoreNumber = $This.Number
@@ -261,4 +264,23 @@ function Move-StoreTervisDotComAddressesToDistributionGroup {
             } while ($StoreDefinition.TervisDotComDistributionGroup.PrimarySmtpAddress -ne $TervisDotComEmailAddress)
         }
     }
+}
+
+function Update-GroupsContainingStoreTervisDotComAddressToUseMailContact {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $MailEnabledGroups =  $StoreDefinition.BackOfficeADUser.MemberOf | 
+        Get-ADGroup -Properties Mail |
+        Where {$_.Mail}
+
+        foreach ($Group in $MailEnabledGroups) {
+            $Group | Set-ADGroup -Add @{Member = $StoreDefinition.MailContactADObject.DistinguishedName}
+            $Group | Remove-ADGroupMember -Members $StoreDefinition.BackOfficeADUser -Confirm:$false
+        }
+    }
+}
+
+function Set-StoresOldMailboxToHiddinInGAL {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    $StoreDefinitions.ExchangeMailbox | set-ExchangeMailbox -HiddenFromAddressListsEnabled $true
 }
