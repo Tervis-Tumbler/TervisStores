@@ -162,7 +162,18 @@ function Add-TervisStoreDefinitionCustomProperty {
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name NumberOfRegister -Force -Value {
             $This.Register | Measure-Object | Select-Object -ExpandProperty Count
-        } -PassThru:$PassThru 
+        } -PassThru |
+        Add-Member -MemberType ScriptProperty -Name OldSMTPAddressWithOldInName -Force -Value {
+            "$($This.BackOfficeADUser.SamAccountName)_Old@tervis.com"
+        }
+
+        $Object |
+        Where-Object {-not $_.OldSMTPAddress} |
+        Add-Member -MemberType ScriptProperty -Name OldSMTPAddress -Force -Value {
+            "$($This.BackOfficeADUser.SamAccountName)@tervis.com"
+        }
+
+        if ($PassThru) { $Object }
     }
 }
 
@@ -266,6 +277,79 @@ function Move-StoreTervisDotComAddressesToDistributionGroup {
     }
 }
 
+function Set-StoreDistributionGroupForTervisDotComAddressToHaveTervisDotComAddress {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $StoreDefinition.TervisDotComDistributionGroup |
+        Set-ExchangeDistributionGroup -PrimarySmtpAddress $StoreDefinition.OldSMTPAddress -EmailAddressPolicyEnabled:$false
+    }
+}
+
+function Set-StoreBackOfficeADUserUPN {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        if ($StoreDefinition.BackOfficeADUser.UserPrincipalName -notmatch "@tervis0.onmicrosoft.com") {
+            $StoreDefinition.BackOfficeADUser |
+            Set-ADUser -UserPrincipalName "$($StoreDefinition.BackOfficeADUser.SamAccountName)@tervis0.onmicrosoft.com"
+        }
+    }
+}
+
+function Set-StoreTervisDotComAddressWithOldAsPrimaryForMailbox {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {        
+        if ($StoreDefinition.ExchangeMailbox.PrimarySmtpAddress -eq $StoreDefinition.OldSMTPAddress) {        
+            $StoreDefinition.ExchangeMailbox | 
+            Set-ExchangeMailbox -PrimarySmtpAddress $StoreDefinition.OldSMTPAddressWithOldInName -EmailAddressPolicyEnabled:$false
+        }
+    }
+}
+
+function Remove-StoreTervisDotComAddressFromMailbox {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $TervisDotComEmailAddressSMTPForm = $StoreDefinition.ExchangeMailbox.EmailAddresses |
+        Where-Object {$_ -match $StoreDefinition.OldSMTPAddress}
+
+        if ($TervisDotComEmailAddressSMTPForm) {
+            $StoreDefinition.ExchangeMailbox | 
+            Set-ExchangeMailbox -EmailAddresses @{Remove ="smtp:$($StoreDefinition.OldSMTPAddress)" } -EmailAddressPolicyEnabled:$false
+        }
+    }
+}
+
+
+function Remove-StoreTervisDotComAddressesFromDistributionGroup {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $TervisDotComEmailAddressSMTPForm = $StoreDefinition.TervisDotComDistributionGroup.EmailAddresses |
+        Where-Object {$_ -match $StoreDefinition.OldSMTPAddress}
+        
+        if ($TervisDotComEmailAddressSMTPForm) {
+            $OnMicrosoftEmailAddress = (
+                $StoreDefinition.TervisDotComDistributionGroup.EmailAddresses |
+                Where-Object {$_ -match "mail.onmicrosoft.com"}
+            ) -split ":" |
+            Select-Object -First 1 -Skip 1
+        
+            $StoreDefinition.TervisDotComDistributionGroup | 
+            Set-ExchangeDistributionGroup -PrimarySmtpAddress $OnMicrosoftEmailAddress -EmailAddressPolicyEnabled:$false
+        
+            $StoreDefinition.TervisDotComDistributionGroup |
+            Set-ExchangeDistributionGroup -EmailAddresses @{Remove = $TervisDotComEmailAddressSMTPForm} -EmailAddressPolicyEnabled:$false
+        }
+    }
+}
+
+function Add-OldTervisDotComEmailAddressesToOldMailbox {
+    $StoreDefinitions = Get-TervisStoreDefinition
+
+    foreach ($StoreDefinition in $StoreDefinitions) {
+        $StoreDefinition.ExchangeMailbox | 
+        Set-ExchangeMailbox -PrimarySmtpAddress $StoreDefinition.OldSMTPAddress -EmailAddressPolicyEnabled:$false
+    }
+}
+
 function Update-GroupsContainingStoreTervisDotComAddressToUseMailContact {
     $StoreDefinitions = Get-TervisStoreDefinition
     foreach ($StoreDefinition in $StoreDefinitions) {
@@ -285,7 +369,7 @@ function Set-StoresOldMailboxToHiddinInGAL {
     $StoreDefinitions.ExchangeMailbox | set-ExchangeMailbox -HiddenFromAddressListsEnabled $true
 }
 
-function Set-StoresADAccountsAsMembersOfTervis-Everyone {
+function Set-StoresADAccountsAsMembersOfTervisEveryone {
     $StoreDefinitions = Get-TervisStoreDefinition
     Get-ADGroup -Identity "Tervis - Everyone" |
     Add-ADGroupMember -Members $StoreDefinitions.BackOfficeADUser 
@@ -300,10 +384,8 @@ function Set-StoresADAccountsAsMembersOfTervis-Everyone {
     Get-ADGroup -Identity "Stores-1367133941" | Get-ADGroupMember
 
     Disable-ExchangeDistributionGroup -Identity "Stores"
-
-
-
 }
+
 function Invoke-RemoveStoresFromDistroGroupAndAddMailContact {
     $StoreDefinitions = Get-TervisStoreDefinition
     $Group = Get-ADGroup -Identity "Stores-1367133941"
@@ -312,5 +394,16 @@ function Invoke-RemoveStoresFromDistroGroupAndAddMailContact {
         $Group | Set-ADGroup -Add @{Member = $StoreDefinition.MailContactADObject.DistinguishedName}
         $Group | Remove-ADGroupMember -Members $StoreDefinition.BackOfficeADUser -Confirm:$false
     }
+}
+
+function Add-PrimaryEmailAddressToOldStoreMailboxes {
+    $StoreDefinitions = Get-TervisStoreDefinition
+    foreach ($StoreDefinition in $StoreDefinitions) {        
+        $StoreDefinition.ExchangeMailbox |
+        Set-ExchangeMailbox -PrimarySmtpAddress "$($StoreDefinition.BackOfficeADUser.SamAccountName)_Old@Tervis.com" -EmailAddressPolicyEnabled:$false
+    }
+
+
+    $StoreDefinition.TervisDotComDistributionGroup
 }
 

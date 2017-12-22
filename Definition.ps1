@@ -9,6 +9,7 @@
     Number = 3028
     BackOfficeAccountPasswordStateID = 3075
     EmailAccountPasswordStateID = "5242"
+    OldSMTPAddress = "ashevillestore@tervis.com"
 },
 [PSCustomObject]@{
     Name = "Atlanta"
