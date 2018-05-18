@@ -407,3 +407,20 @@ function Add-PrimaryEmailAddressToOldStoreMailboxes {
     $StoreDefinition.TervisDotComDistributionGroup
 }
 
+function Install-GivexRMSPlugin {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $PackageSource = "\\$env:USERDNSDOMAIN\applications\Chocolatey\givexrmsplugin.1.4.0.261702.nupkg"
+        $DestinationLocal = "C:\ProgramData\Tervis\ChocolateyPackage\givexrmsplugin.1.4.0.261702.nupkg"
+    }
+    process {
+        Copy-ItemToRemoteComputerWithBitsTransfer -ComputerName $ComputerName -Source $PackageSource -DestinationLocal $DestinationLocal
+        
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            choco install chocolatey-uninstall.extension -y
+            choco install $Using:DestinationLocal -y
+        }
+    }
+}
