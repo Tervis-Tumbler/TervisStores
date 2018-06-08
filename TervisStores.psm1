@@ -424,3 +424,19 @@ function Install-GivexRMSPlugin {
         }
     }
 }
+
+function Add-GivexRMSTenderType {
+    param (
+        [Parameter(Mandatory)]$ComputerName
+    )
+
+    $GivexTenderTypeParameters = @{
+        ComputerName = $ComputerName
+        Description = "Givex Gift Certificate"
+        Code = "GIVEX"
+        DoNotPopCashDrawer = 1
+        AllowMultipleEntries = 1
+    }
+
+    Add-TervisRMSTenderType @GivexTenderTypeParameters
+}
