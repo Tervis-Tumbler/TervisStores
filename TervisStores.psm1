@@ -436,6 +436,7 @@ function Add-GivexRMSTenderType {
         Code = "GIVEX"
         DoNotPopCashDrawer = 1
         AllowMultipleEntries = 1
+        DisplayOrder = 8
     }
 
     Add-TervisRMSTenderType @GivexTenderTypeParameters
