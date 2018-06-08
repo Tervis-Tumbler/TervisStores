@@ -407,6 +407,22 @@ function Add-PrimaryEmailAddressToOldStoreMailboxes {
     $StoreDefinition.TervisDotComDistributionGroup
 }
 
+function Invoke-GivexDeployment {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        Install-TervisChocolatey -ComputerName $ComputerName
+        Install-GivexRMSPlugin -ComputerName $ComputerName
+        Add-GivexRMSTenderType -ComputerName $ComputerName
+        #Remove-StandardGiftCardTenderType
+        #Add-GivexBalanceCustomPOSButton
+        #Add-GivexAdminCustomPOSButton
+        #Install-GivexReceipt
+        #Install-GivexGcmIniFile
+    }
+}
+
 function Install-GivexRMSPlugin {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
@@ -427,17 +443,18 @@ function Install-GivexRMSPlugin {
 
 function Add-GivexRMSTenderType {
     param (
-        [Parameter(Mandatory)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
-
-    $GivexTenderTypeParameters = @{
-        ComputerName = $ComputerName
-        Description = "Givex Gift Certificate"
-        Code = "GIVEX"
-        DoNotPopCashDrawer = 1
-        AllowMultipleEntries = 1
-        DisplayOrder = 8
+    process {
+        $GivexTenderTypeParameters = @{
+            ComputerName = $ComputerName
+            Description = "Givex Gift Certificate"
+            Code = "GIVEX"
+            DoNotPopCashDrawer = 1
+            AllowMultipleEntries = 1
+            DisplayOrder = 20
+        }
+    
+        Add-TervisRMSTenderType @GivexTenderTypeParameters
     }
-
-    Add-TervisRMSTenderType @GivexTenderTypeParameters
 }
