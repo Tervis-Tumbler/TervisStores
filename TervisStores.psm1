@@ -412,9 +412,10 @@ function Invoke-GivexDeployment {
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
     process {
+        $DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
         Install-TervisChocolatey -ComputerName $ComputerName
         Install-GivexRMSPlugin -ComputerName $ComputerName
-        Add-GivexRMSTenderType -ComputerName $ComputerName
+        Add-GivexRMSTenderType -ComputerName $ComputerName -DataBaseName $DatabaseName
         Remove-StandardGiftCardTenderType
         Add-GivexBalanceCustomPOSButton
         Add-GivexAdminCustomPOSButton
@@ -432,8 +433,7 @@ function Install-GivexRMSPlugin {
         $DestinationLocal = "C:\ProgramData\Tervis\ChocolateyPackage\givexrmsplugin.1.4.0.261702.nupkg"
     }
     process {
-        Copy-ItemToRemoteComputerWithBitsTransfer -ComputerName $ComputerName -Source $PackageSource -DestinationLocal $DestinationLocal
-        
+        Copy-ItemToRemoteComputerWithBitsTransfer -ComputerName $ComputerName -Source $PackageSource -DestinationLocal $DestinationLocal        
         Invoke-Command -ComputerName $ComputerName -ScriptBlock {
             choco install chocolatey-uninstall.extension -y
             choco install $Using:DestinationLocal -y
@@ -443,11 +443,13 @@ function Install-GivexRMSPlugin {
 
 function Add-GivexRMSTenderType {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     process {
         $GivexTenderTypeParameters = @{
             ComputerName = $ComputerName
+            DatabaseName = $DatabaseName
             Description = "Givex Gift Certificate"
             Code = "GIVEX"
             DoNotPopCashDrawer = 1
@@ -461,19 +463,20 @@ function Add-GivexRMSTenderType {
 
 function Remove-StandardGiftCardTenderType {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     begin {
         $Query = "DELETE FROM Tender WHERE Description = 'Gift Card'"
     }
-    process {
-        $DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
+    process {        
         Invoke-RMSSQL -DataBaseName $DatabaseName -SQLServerName $ComputerName -Query $Query
     }
 }
 function Add-GivexBalanceCustomPOSButton {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     process {
         
@@ -481,7 +484,8 @@ function Add-GivexBalanceCustomPOSButton {
 }
 function Add-GivexAdminCustomPOSButton {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     process {
         
