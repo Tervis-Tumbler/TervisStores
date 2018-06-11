@@ -415,11 +415,11 @@ function Invoke-GivexDeployment {
         Install-TervisChocolatey -ComputerName $ComputerName
         Install-GivexRMSPlugin -ComputerName $ComputerName
         Add-GivexRMSTenderType -ComputerName $ComputerName
-        #Remove-StandardGiftCardTenderType
-        #Add-GivexBalanceCustomPOSButton
-        #Add-GivexAdminCustomPOSButton
-        #Install-GivexReceipt
-        #Install-GivexGcmIniFile
+        Remove-StandardGiftCardTenderType
+        Add-GivexBalanceCustomPOSButton
+        Add-GivexAdminCustomPOSButton
+        Install-GivexReceipt
+        Install-GivexGcmIniFile
     }
 }
 
@@ -457,4 +457,49 @@ function Add-GivexRMSTenderType {
     
         Add-TervisRMSTenderType @GivexTenderTypeParameters
     }
+}
+
+function Remove-StandardGiftCardTenderType {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $Query = "DELETE FROM Tender WHERE Description = 'Gift Card'"
+    }
+    process {
+        $DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
+        Invoke-RMSSQL -DataBaseName $DatabaseName -SQLServerName $ComputerName -Query $Query
+    }
+}
+function Add-GivexBalanceCustomPOSButton {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        
+    }    
+}
+function Add-GivexAdminCustomPOSButton {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        
+    }    
+}
+function Install-GivexReceipt {    
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        
+    }
+}
+function Install-GivexGcmIniFile {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        
+    }    
 }
