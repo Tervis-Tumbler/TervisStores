@@ -418,11 +418,11 @@ function Invoke-GivexDeployment {
         Remove-StandardGiftCardTenderType
         Add-GivexBalanceCustomPOSButton
         Add-GivexAdminCustomPOSButton
-        Install-GivexReceipt
+
         # POS
         Install-TervisChocolatey -ComputerName $ComputerName
         Install-GivexRMSPlugin -ComputerName $ComputerName
-        Install-GivexGcmIniFile
+        Install-GivexGcmIniFile -ComputerName $ComputerName
     }
 }
 
@@ -512,15 +512,6 @@ function Add-GivexAdminCustomPOSButton {
         
         Add-TervisRMSCustomButton @GivexAdminCustomPOSButtonParameters        
     }    
-}
-
-function Install-GivexReceipt {    
-    param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
-    )
-    process {
-        
-    }
 }
 
 function Install-GivexGcmIniFile {
