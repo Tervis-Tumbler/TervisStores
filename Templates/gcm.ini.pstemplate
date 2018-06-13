@@ -1,0 +1,199 @@
+[COMMUNICATION]
+
+# PRIMARY_MODE - Determines the primary connection method.
+# 1 = TCP/IP
+# 2 = Dial
+PRIMARY_MODE=1
+
+# PRIMARY_TIMEOUT - Connection timeout in seconds.
+PRIMARY_TIMEOUT=20
+
+# PRIMARY_IP_ADDRESS - Givex TCP/IP host for communications.
+PRIMARY_IP_ADDRESS=$URL
+
+# PRIMARY_IP_PORT - Givex TCP/IP port for communications.
+PRIMARY_IP_PORT=$Port
+
+# PRIMARY_DIAL_COM - COM port the modem is attached to for Dial.
+PRIMARY_DIAL_COM=
+
+# PRIMARY_DIAL_BAUD - Serial baud rate to communicate with the modem.
+PRIMARY_DIAL_BAUD=
+
+# PRIMARY_DIAL_INIT - Init string for the modem.
+PRIMARY_DIAL_INIT=
+
+# PRIMARY_DIAL_PHONE - Givex Dial phone number for communications.
+PRIMARY_DIAL_PHONE=
+
+# BACKUP_MODE - Determines the backup connection method used when the primary connection fails.
+# 0 = Backup connection is disabled.
+# 1 = TCP/IP
+# 2 = Dial
+BACKUP_MODE=0
+
+# BACKUP_TIMEOUT - Connection timeout in seconds.
+BACKUP_TIMEOUT=20
+
+# BACKUP_IP_ADDRESS - Givex TCP/IP host for communications.
+BACKUP_IP_ADDRESS=$URL
+
+# BACKUP_IP_PORT - Givex TCP/IP port for communications.
+BACKUP_IP_PORT=$Port
+
+# BACKUP_DIAL_COM - COM port the modem is attached to for Dial.
+BACKUP_DIAL_COM=
+
+# BACKUP_DIAL_BAUD - Serial baud rate to communicate with the modem.
+BACKUP_DIAL_BAUD=
+
+# BACKUP_DIAL_INIT - Init string for the modem.
+BACKUP_DIAL_INIT=
+
+# BACKUP_DIAL_PHONE - Givex Dial phone number for communications.
+BACKUP_DIAL_PHONE=
+
+
+[RMS]
+
+# USER_ID - Givex terminal user ID  provided by Givex.
+USER_ID=$UserID
+
+# USER_PASSWORD - Givex terminal user password provided by Givex.
+USER_PASSWORD=$UserPassword
+
+# IGNORE_CASHIER - Control if the RMS Cashier Number is sent to the Givex host.
+# 0 = Send the RMS Cashier Number.
+# 1 = Do not send the RMS Cashier Number.
+IGNORE_CASHIER=
+
+# TENDER_DESCRIPTION - This setting is used to determine if a tender is a Givex tender
+#                      by partially matching the configured value with the RMS configuration.
+#                      Database -> Tender Types -> Properties -> General -> Description
+TENDER_DESCRIPTION=Givex
+
+# ITEM_TAG_ACTIVATE - This setting is used to determine if an item is a Givex Activate by
+#                     exact matching the configured value with the RMS configuration.
+#                     Database -> Items -> Properties -> General -> Item Lookup Code
+ITEM_TAG_ACTIVATE=GIVEXACT
+
+# ITEM_TAG_INCREMENT - This setting is used to determine if an item is a Givex Increment by
+#                      exact matching the configured value with the RMS configuration.
+#                      Database -> Items -> Properties -> General -> Item Lookup Code
+ITEM_TAG_INCREMENT=GIVEXINC
+
+# ITEM_TAG_DISCOUNT - This setting is used when adding a Discount inventory item to
+#                     an invoice.  If configured the inventory item with the exact
+#                     matching Item Lookup Code will be used for the discount.  If not
+#                     configured the Item Lookup Code will be returned by the Givex host.
+#                     Database -> Items -> Properties -> General -> Item Lookup Code
+ITEM_TAG_DISCOUNT=GIVEXDISC
+
+# DISCOUNT_DESCRIPTION - Determines the name that will be set in the Comment associated
+#                        with an Inventory Item used for discounts.  The name is used
+#                        internally by the Givex driver to determine which inventory items
+#                        are automated discounts added by the Givex host transaction.
+#                        The description should be unique to facillitate the identification.
+DISCOUNT_DESCRIPTION=PROMOTION
+
+# REFUND_TRANS - Determines which Givex host service to use for RMS refund transactions.
+#                If not configured the default is 905.
+# 905 = Givex Increment transaction service.
+# 906 = Givex Activate transaction service.
+# 908 = Givex Adjustment transaction service.
+REFUND_TRANS=908
+
+# ALLOW_VOID - Determines if Givex Activate and Givex Increment transactions can be voided
+#              or refunded.
+# 0 = Refund/Void of Givex not permitted.
+# 1 = Givex Activate and Givex Increment transactions can be voided or refunded.
+ALLOW_VOID=1
+
+# MSR_START_SENTINEL - This setting is used for magnetic card swipes and is used to determine
+#                      the start sentinel for a track that contains the Givex number.  A
+#                      maximum of two start and end sentinels can be configured.  The start and
+#                      end sentinels are used in pairs, with each pair matching based on being
+#                      either the first or second parameter value.  Example:
+#                      MSR_START_SENTINEL=%A
+#                      MSR_END_SENTINEL=?B
+#                      would parse Givex number 12345 for both %12345? and A12345B
+MSR_START_SENTINEL=B
+
+# MSR_END_SENTINEL - Please see the description for MSR_START_SENTINEL.
+MSR_END_SENTINEL=^
+
+# DISCOUNT_ACTIVE - Determines if Discount functionality is enabled.
+# 0 = Discount is not enabled.
+# 1 = Discount is enabled.
+DISCOUNT_ACTIVE=0
+
+# POINTS_ACTIVE - Determines if Points Issuance is triggered at the end of tendering an invoice.
+#                 This setting also controls if the Givex Balance transaction displays the points
+#                 balance.
+# 0 = Points Issuance is not enabled.
+# 1 = Points Issuance is enabled.
+POINTS_ACTIVE=0
+
+# POINTS_SKU_ACTIVE - This setting selects between traditional points issuance based on the invoice
+#                     total and SKU based points issuance where all invoice details are used to
+#                     calculate the points earned.  The INI setting POINTS_ACTIVE must be enabled
+#                     for this setting to have any effect.
+# 0 = Traditional points issuance based on invoice total.
+# 1 = SKU based points issuance based on Inventory Item details on invoice.
+POINTS_SKU_ACTIVE=0
+
+# POINTS_INCLUDE_GIFT - This settings controls if points issuance includes Givex Activate and
+#                       Givex Increment inventory items.
+# 0 = Do not include Givex Activate and Givex Increment amounts for Points Issuance
+# 1 = Include Givex Activate and Givex Increment amounts for Points Issuance
+POINTS_INCLUDE_GIFT=0
+
+# SHOW_MEMBER_NAME - This setting controls if the member name is displayed for Givex Balance
+#                    balance transactions and printed on the receipt for Points Issuance (both
+#                    traditional and SKU based).
+# 0 = Do not display/print the member name.
+# 1 = Display and print the member name.
+SHOW_MEMBER_NAME=0
+
+# AMOUNT_DISPLAY_ONLY - This settings controls if the Amount field displayed on the Points Issuance
+#                       dialog window can be changed or if it is display only.
+# 0 = Allow the Amount value to be edited
+# 1 = Do not allow the Amount to be edited
+AMOUNT_DISPLAY_ONLY=0
+
+# UNITS_ACTIVE - This settings controls if the Units field is displayed on the Points Issuance
+#                dialog window (traditional points issuance only - not applicable to SKU).
+# 0 = Do not display the Units field on the dialog window
+# 1 = Display the Units field on the dialog window
+UNITS_ACTIVE=0
+
+# PROMO_ACTIVE - This setting controls if the Promo Code field is displayed on the Points Issuance
+#                dialog window (traditional points issuance only - not applicable to SKU).
+# 0 = Do not display the Promotion Code field on the dialog window
+# 1 = Display the Promotion Code field on the dialog window
+PROMO_ACTIVE=0
+
+# PROMO_x_CODE - Allows up to 10 (A to J) Promotion Codes and Promotion Names to be configured.
+# PROMO_x_NAME   The configured value for PROMO_x_CODE will be sent to the Givex host.  The
+#                configured value for PROMO_x_NAME will be displayed in the Points Issuance
+#                dialog window drop-down selection list.
+PROMO_A_CODE=
+PROMO_A_NAME=
+PROMO_B_CODE=
+PROMO_B_NAME=
+PROMO_C_CODE=
+PROMO_C_NAME=
+PROMO_D_CODE=
+PROMO_D_NAME=
+PROMO_E_CODE=
+PROMO_E_NAME=
+PROMO_F_CODE=
+PROMO_F_NAME=
+PROMO_G_CODE=
+PROMO_G_NAME=
+PROMO_H_CODE=
+PROMO_H_NAME=
+PROMO_I_CODE=
+PROMO_I_NAME=
+PROMO_J_CODE=
+PROMO_J_NAME=

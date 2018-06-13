@@ -412,14 +412,16 @@ function Invoke-GivexDeployment {
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
     process {
+        # Back office
         $DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
-        Install-TervisChocolatey -ComputerName $ComputerName
-        Install-GivexRMSPlugin -ComputerName $ComputerName
         Add-GivexRMSTenderType -ComputerName $ComputerName -DataBaseName $DatabaseName
         Remove-StandardGiftCardTenderType
         Add-GivexBalanceCustomPOSButton
         Add-GivexAdminCustomPOSButton
         Install-GivexReceipt
+        # POS
+        Install-TervisChocolatey -ComputerName $ComputerName
+        Install-GivexRMSPlugin -ComputerName $ComputerName
         Install-GivexGcmIniFile
     }
 }
@@ -525,7 +527,22 @@ function Install-GivexGcmIniFile {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
+    begin {
+        $UserCredentials = Get-PasswordstatePassword -ID 5450
+        $OperatorCredentials = Get-PasswordstatePassword -ID 5451
+        $GcmIniLocalPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
+        $TemplateVariables = @{
+            UserID = $UserCredentials.UserName
+            UserPassword = $UserCredentials.Password
+            OperatorID = $OperatorCredentials.UserName
+            OperatorPassword = $OperatorCredentials.Password
+            URL = $UserCredentials.URL.split(":")[0]
+            Port = $UserCredentials.URL.split(":")[1]
+        }
+    }
     process {
-        
+        $GcmIniContent = Invoke-ProcessTemplateFile -TemplateFile $PSScriptRoot\Templates\gcm.ini.pstemplate -TemplateVariables $TemplateVariables
+        $RemoteGcmIniPath = $GcmIniLocalPath | ConvertTo-RemotePath -ComputerName $ComputerName
+        $GcmIniContent | Out-File -FilePath $RemoteGcmIniPath -Force -Encoding utf8
     }    
 }
