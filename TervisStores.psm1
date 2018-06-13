@@ -407,26 +407,35 @@ function Add-PrimaryEmailAddressToOldStoreMailboxes {
     $StoreDefinition.TervisDotComDistributionGroup
 }
 
-function Invoke-GivexDeployment {
-    param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+function Invoke-GivexDeploymentToBackOfficeComputer {
+param (
+    [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
-    process {
-        # Back office
-        $DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
-        Add-GivexRMSTenderType -ComputerName $ComputerName -DataBaseName $DatabaseName
-        Remove-StandardGiftCardTenderType
-        Add-GivexBalanceCustomPOSButton
-        Add-GivexAdminCustomPOSButton
+    process {    
+        $BackOfficeComputer = [PSCustomObject]@{
+            ComputerName = $ComputerName
+            DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
+        }
 
-        # POS
-        Install-TervisChocolatey -ComputerName $ComputerName
-        Install-GivexRMSPlugin -ComputerName $ComputerName
-        Install-GivexGcmIniFile -ComputerName $ComputerName
+        $BackOfficeComputer | Add-GivexRMSTenderType
+        $BackOfficeComputer | Remove-StandardGiftCardTenderType
+        $BackOfficeComputer | Add-GivexBalanceCustomPOSButton
+        $BackOfficeComputer | Add-GivexAdminCustomPOSButton
     }
 }
 
-function Install-GivexRMSPlugin {
+function Invoke-GivexDeploymentToRegisterComputer {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {    
+        $_ | Install-TervisChocolatey
+        $_ | Install-GivexRMSPlugin
+        $_ | Install-GivexGcmIniFile
+    }
+}
+        
+        function Install-GivexRMSPlugin {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
@@ -514,7 +523,7 @@ function Add-GivexAdminCustomPOSButton {
     }    
 }
 
-function Install-GivexGcmIniFile {
+function Install-GivexGcmIniFile_DEV {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
