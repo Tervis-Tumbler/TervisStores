@@ -426,12 +426,20 @@ param (
 
 function Invoke-GivexDeploymentToRegisterComputer {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [switch]$DeltaEnvironment
     )
-    process {    
-        $_ | Install-TervisChocolatey
-        $_ | Install-GivexRMSPlugin
-        $_ | Install-GivexGcmIniFile
+    process {
+        $RegisterComputer = [PSCustomObject]@{
+            ComputerName = $ComputerName
+        }    
+        $RegisterComputer | Install-TervisChocolatey
+        $RegisterComputer | Install-GivexRMSPlugin
+        if ($DeltaEnvironment) {
+            $RegisterComputer | Install-GivexGcmIniFile_DEV
+        } else {
+            $RegisterComputer | Install-GivexGcmIniFile
+        }
     }
 }
         
