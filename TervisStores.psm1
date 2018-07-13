@@ -52,7 +52,7 @@ function New-MigaduStoreEmailBox {
         [Parameter(Mandatory)]$XAuthorizationEmail
     )
     foreach ($Store in $StoreDefinition) {
-        $Credential = Get-PasswordstateCredential -PasswordID $Store.EmailAccountPasswordStateID
+        $Credential = Get-PasswordstatePassword -AsCredential -ID $Store.EmailAccountPasswordStateID
         $Domain = $Credential.UserName -split "@" | select -First 1 -Skip 1
         $EmailAddressLocalPart = $Credential.UserName -split "@" | select -First 1
         $MigaduMailbox = Get-MigaduMailbox -Domain $Domain -EmailAddressLocalPart $EmailAddressLocalPart -XAuthorizationToken $XAuthorizationToken -XAuthorizationEmail $XAuthorizationEmail -ErrorAction SilentlyContinue
@@ -113,7 +113,7 @@ function Add-TervisStoreDefinitionCustomProperty {
     process {
         $Object |
         Add-Member -MemberType ScriptProperty -Name BackOfficeUserCredential -Force -Value {
-            Get-PasswordstateCredential -PasswordID $This.BackOfficeAccountPasswordStateID
+            Get-PasswordstatePassword -AsCredential -ID $This.BackOfficeAccountPasswordStateID
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name BackOfficeUserName -Force -Value {
             $This.BackOfficeUserCredential.UserName
@@ -122,7 +122,7 @@ function Add-TervisStoreDefinitionCustomProperty {
             Get-AdUser -Identity $This.BackOfficeUserName -Properties *
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MigaduMailboxCredential -Force -Value {
-            Get-PasswordstateCredential -PasswordID $This.EmailAccountPasswordStateID
+            Get-PasswordstatePassword -AsCredential -ID $This.EmailAccountPasswordStateID
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name EmailAddress -Force -Value {
             $This.MigaduMailboxCredential |
