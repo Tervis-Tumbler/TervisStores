@@ -556,3 +556,11 @@ function Install-GivexGcmIniFile_DEV {
         $GcmIniContent | Out-File -FilePath $RemoteGcmIniPath -Force -Encoding utf8
     }    
 }
+
+function Invoke-nChannelSyncManagerProvision {
+    param (
+        $EnvironmentName = "Delta"
+    )
+    Invoke-ApplicationProvision -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
+    $Nodes = Get-TervisApplicationNode -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
+}
