@@ -562,5 +562,5 @@ function Invoke-nChannelSyncManagerProvision {
         $EnvironmentName = "Delta"
     )
     Invoke-ApplicationProvision -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
-    $Nodes = Get-TervisApplicationNode -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
+    #$Nodes = Get-TervisApplicationNode -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
 }
