@@ -443,7 +443,7 @@ function Invoke-GivexDeploymentToRegisterComputer {
     }
 }
         
-        function Install-GivexRMSPlugin {
+function Install-GivexRMSPlugin {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
     )
@@ -555,6 +555,48 @@ function Install-GivexGcmIniFile_DEV {
         $RemoteGcmIniPath = $GcmIniLocalPath | ConvertTo-RemotePath -ComputerName $ComputerName
         $GcmIniContent | Out-File -FilePath $RemoteGcmIniPath -Force -Encoding utf8
     }    
+}
+
+function Install-GivexGcmIniFile {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $GcmIniLocalPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
+        $GivexStoreCredentialTable = Get-GivexStoreCredentialTable
+        $URL = ""
+        $Port = ""
+    }
+    process {
+        $StoreCredential = Get-GivexStoreCredential -GivexStoreCredentialTable $GivexStoreCredentialTable -ComputerName $ComputerName
+
+        $TemplateVariables = @{
+            UserID = $StoreCredential.UserName
+            UserPassword = $StoreCredential.Password
+            URL = $URL
+            Port = $Port
+        }
+
+        $GcmIniContent = Invoke-ProcessTemplateFile -TemplateFile $PSScriptRoot\Templates\gcm.ini.pstemplate -TemplateVariables $TemplateVariables
+        $RemoteGcmIniPath = $GcmIniLocalPath | ConvertTo-RemotePath -ComputerName $ComputerName
+        $GcmIniContent | Out-File -FilePath $RemoteGcmIniPath -Force -Encoding utf8
+    }    
+}
+
+function Get-GivexStoreCredentialTable {
+    $StoreInfoObject =  Get-PasswordstatePassword -ID 5526
+    $StoreInfoObject.GenericField1 | ConvertFrom-Json
+}
+
+function Get-GivexStoreCredential {
+    param (
+        $GivexStoreCredentialTable = (Get-GivexStoreCredentialTable),
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    process {
+        $StoreCode = $ComputerName.Substring(0,4)
+        $GivexStoreCredentialTable | Where-Object StoreCode -eq $StoreCode
+    }
 }
 
 function Invoke-nChannelSyncManagerProvision {
