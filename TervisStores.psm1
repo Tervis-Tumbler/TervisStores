@@ -571,8 +571,8 @@ function Install-GivexGcmIniFile {
         $StoreCredential = Get-GivexStoreCredential -GivexStoreCredentialTable $GivexStoreCredentialTable -ComputerName $ComputerName
 
         $TemplateVariables = @{
-            UserID = $StoreCredential.UserName
-            UserPassword = $StoreCredential.Password
+            UserID = $StoreCredential."User ID"
+            UserPassword = $StoreCredential."User Password"
             URL = $URL
             Port = $Port
         }
@@ -595,7 +595,12 @@ function Get-GivexStoreCredential {
     )
     process {
         $StoreCode = $ComputerName.Substring(0,4)
-        $GivexStoreCredentialTable | Where-Object StoreCode -eq $StoreCode
+        $RegisterNumber = $ComputerName.Substring(9,1)
+        $GivexStoreCredentialTable | 
+            Where-Object {
+                ($_.StoreCode -eq $StoreCode) -and
+                ($_."User Description" -match "POS$RegisterNumber")
+            }                
     }
 }
 
