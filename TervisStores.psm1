@@ -452,6 +452,7 @@ function Install-GivexRMSPlugin {
         $DestinationLocal = "C:\ProgramData\Tervis\ChocolateyPackage\givexrmsplugin.1.4.0.261702.nupkg"
     }
     process {
+        Write-Verbose "$ComputerName - Installing Givex driver"
         Copy-ItemToRemoteComputerWithBitsTransfer -ComputerName $ComputerName -Source $PackageSource -DestinationLocal $DestinationLocal        
         Invoke-Command -ComputerName $ComputerName -ScriptBlock {
             choco install chocolatey-uninstall.extension -y
@@ -466,6 +467,7 @@ function Add-GivexRMSTenderType {
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     process {
+        Write-Verbose "$ComputerName - Adding RMS Tender Type for Givex"
         $GivexTenderTypeParameters = @{
             ComputerName = $ComputerName
             DatabaseName = $DatabaseName
@@ -488,7 +490,8 @@ function Remove-StandardGiftCardTenderType {
     begin {
         $Query = "DELETE FROM Tender WHERE Description = 'Gift Card'"
     }
-    process {        
+    process {
+        Write-Verbose "$ComputerName - Removing old gift card Tender Type"        
         Invoke-RMSSQL -DataBaseName $DatabaseName -SQLServerName $ComputerName -Query $Query
     }
 }
@@ -499,6 +502,7 @@ function Add-GivexBalanceCustomPOSButton {
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     process {
+        Write-Verbose "$ComputerName - Adding Givex Balance button"
         $GivexBalanceCustomPOSButtonParameters = @{
             ComputerName = $ComputerName
             DatabaseName = $DatabaseName
@@ -519,6 +523,7 @@ function Add-GivexAdminCustomPOSButton {
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     )
     process {
+        Write-Verbose "$ComputerName - Adding Givex Admin button"
         $GivexAdminCustomPOSButtonParameters = @{
             ComputerName = $ComputerName
             DatabaseName = $DatabaseName
@@ -564,17 +569,14 @@ function Install-GivexGcmIniFile {
     begin {
         $GcmIniLocalPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
         $GivexStoreCredentialTable = Get-GivexStoreCredentialTable
-        $URL = ""
-        $Port = ""
     }
     process {
+        Write-Verbose "$ComputerName - Installing GCM.ini file"
         $StoreCredential = Get-GivexStoreCredential -GivexStoreCredentialTable $GivexStoreCredentialTable -ComputerName $ComputerName
 
         $TemplateVariables = @{
             UserID = $StoreCredential."User ID"
             UserPassword = $StoreCredential."User Password"
-            URL = $URL
-            Port = $Port
         }
 
         $GcmIniContent = Invoke-ProcessTemplateFile -TemplateFile $PSScriptRoot\Templates\gcm.ini.pstemplate -TemplateVariables $TemplateVariables

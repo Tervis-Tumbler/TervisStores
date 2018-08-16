@@ -9,10 +9,10 @@ PRIMARY_MODE=1
 PRIMARY_TIMEOUT=20
 
 # PRIMARY_IP_ADDRESS - Givex TCP/IP host for communications.
-PRIMARY_IP_ADDRESS=$URL
+PRIMARY_IP_ADDRESS=DC-US1.GIVEX.COM
 
 # PRIMARY_IP_PORT - Givex TCP/IP port for communications.
-PRIMARY_IP_PORT=$Port
+PRIMARY_IP_PORT=50030
 
 # PRIMARY_DIAL_COM - COM port the modem is attached to for Dial.
 PRIMARY_DIAL_COM=
@@ -30,16 +30,16 @@ PRIMARY_DIAL_PHONE=
 # 0 = Backup connection is disabled.
 # 1 = TCP/IP
 # 2 = Dial
-BACKUP_MODE=0
+BACKUP_MODE=1
 
 # BACKUP_TIMEOUT - Connection timeout in seconds.
 BACKUP_TIMEOUT=20
 
 # BACKUP_IP_ADDRESS - Givex TCP/IP host for communications.
-BACKUP_IP_ADDRESS=$URL
+BACKUP_IP_ADDRESS=DC-US2.GIVEX.COM
 
 # BACKUP_IP_PORT - Givex TCP/IP port for communications.
-BACKUP_IP_PORT=$Port
+BACKUP_IP_PORT=50030
 
 # BACKUP_DIAL_COM - COM port the modem is attached to for Dial.
 BACKUP_DIAL_COM=
