@@ -408,38 +408,35 @@ function Add-PrimaryEmailAddressToOldStoreMailboxes {
 }
 
 function Invoke-GivexDeploymentToBackOfficeComputer {
-param (
-    [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]$ComputerObject
     )
-    process {    
-        $BackOfficeComputer = [PSCustomObject]@{
-            ComputerName = $ComputerName
-            DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
-        }
-
-        $BackOfficeComputer | Add-GivexRMSTenderType
-        $BackOfficeComputer | Remove-StandardGiftCardTenderType
-        $BackOfficeComputer | Add-GivexBalanceCustomPOSButton
-        $BackOfficeComputer | Add-GivexAdminCustomPOSButton
+    
+    Write-Verbose "Getting database names"
+    $ComputerObject | ForEach-Object {
+        $DatabaseName = Get-RMSDatabaseName -ComputerName $_.ComputerName | Select-Object -ExpandProperty RMSDatabaseName
+        $_ | Add-Member -MemberType NoteProperty -Name DatabaseName -Value $DatabaseName -Force
     }
+    $ComputerObject | Add-GivexRMSTenderType
+    $ComputerObject | Remove-StandardGiftCardTenderType
+    $ComputerObject | Add-GivexBalanceCustomPOSButton
+    $ComputerObject | Add-GivexAdminCustomPOSButton
 }
 
 function Invoke-GivexDeploymentToRegisterComputer {
+    [CmdletBinding()]
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory)]$ComputerObject,
         [switch]$DeltaEnvironment
     )
-    process {
-        $RegisterComputer = [PSCustomObject]@{
-            ComputerName = $ComputerName
-        }    
-        $RegisterComputer | Install-TervisChocolatey
-        $RegisterComputer | Install-GivexRMSPlugin
-        if ($DeltaEnvironment) {
-            $RegisterComputer | Install-GivexGcmIniFile_DEV
-        } else {
-            $RegisterComputer | Install-GivexGcmIniFile
-        }
+ 
+    $ComputerObject | Install-TervisChocolatey
+    $ComputerObject | Install-GivexRMSPlugin
+    if ($DeltaEnvironment) {
+        $ComputerObject | Install-GivexGcmIniFile_DEV
+    } else {
+        $ComputerObject | Install-GivexGcmIniFile
     }
 }
         
