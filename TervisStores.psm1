@@ -418,10 +418,10 @@ function Invoke-GivexDeploymentToBackOfficeComputer {
         $DatabaseName = Get-RMSDatabaseName -ComputerName $_.ComputerName | Select-Object -ExpandProperty RMSDatabaseName
         $_ | Add-Member -MemberType NoteProperty -Name DatabaseName -Value $DatabaseName -Force
     }
-    $ComputerObject | Add-GivexRMSTenderType
-    $ComputerObject | Remove-StandardGiftCardTenderType
-    $ComputerObject | Add-GivexBalanceCustomPOSButton
-    $ComputerObject | Add-GivexAdminCustomPOSButton
+    $ComputerObject | Add-GivexRMSTenderType -Verbose
+    $ComputerObject | Remove-StandardGiftCardTenderType -Verbose
+    $ComputerObject | Add-GivexBalanceCustomPOSButton -Verbose
+    $ComputerObject | Add-GivexAdminCustomPOSButton -Verbose
 }
 
 function Invoke-GivexDeploymentToRegisterComputer {
