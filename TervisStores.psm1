@@ -594,12 +594,17 @@ function Get-GivexStoreCredential {
     )
     process {
         $StoreCode = $ComputerName.Substring(0,4)
-        $RegisterNumber = $ComputerName.Substring(9,1)
-        $GivexStoreCredentialTable | 
+        $RegisterNumber = (($ComputerName -split "POS")[1] -split "-")[0]
+        $GivexStoreCredential = $GivexStoreCredentialTable | 
             Where-Object {
                 ($_.StoreCode -eq $StoreCode) -and
                 ($_."User Description" -match "POS$RegisterNumber")
-            }                
+            }
+        if ($GivexStoreCredential) {
+            $GivexStoreCredential
+        } else {
+            Write-Warning "$ComputerName - No Givex credential found"
+        }
     }
 }
 
