@@ -617,12 +617,31 @@ function Invoke-nChannelSyncManagerProvision {
 }
 
 function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
-    $TervisStoreDefinition = Get-TervisStoreDefinition -Name "New Orleans"
-    
-    get-service -ComputerName exchange2016 -Name msExchangeIMAP4 | fl *
-    get-service -ComputerName exchange2016 -Name msExchangeIMAP4 | start-service
+    param (
+        $StoreName
+    )
 
-    get-service -ComputerName exchange2016 -Name MSExchangeIMAP4BE | start-service
+    $ImapServiceNames = "msExchangeIMAP4", "MSExchangeIMAP4BE"
+    $ImapServiceNames |
+    ForEach-Object {
+        get-service -ComputerName exchange2016 -Name $_ | start-service
+    }
+    
+    $TervisStoreDefinition = Get-TervisStoreDefinition
+
+    $TervisStoreDefinition.ExchangeMailbox | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $TervisStoreDefinition.ExchangeMailbox.SamAccountName -RequireSenderAuthenticationEnabled $true
+
+    $MailboxRequest = New-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName -FilePath "\\exchange2016\e$\ExportedPSTs\$($TervisStoreDefinition.Name) Old Exchange Archive.pst"
+    While (-Not ((Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName).Status -match "Complete")) {
+        Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName |
+        Get-ExchangeMailboxExportRequestStatistics |
+        Select-Object -Property StatusDetail,PercentComplete
+        Start-Sleep 60
+    }
+
+    Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName | 
+    Remove-ExchangeMailboxExportRequest -Force
+
 
     $TervisStoreDefinition.BackOfficeADUser.samaccountname
     $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
@@ -645,13 +664,15 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
         SMTPPort = 587
         SMTPConnectionSecurity = "STARTTLS"
     }
+    Start-ParallelWork -ScriptBlock {
+        wsl imapsync --host1 exchange2016.tervis.prv --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --justconnect
+    } -Parameters @(1,2,3)
 
-    "imapsync --host1 exchange2016.tervis.prv --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --justconnect"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justconnect"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justlogin"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes --automap"
-    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --automap"
+    wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --automap
 
     
 }
