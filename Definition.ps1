@@ -96,12 +96,6 @@
     EmailAccountPasswordStateID = "5259"    
 },
 [PSCustomObject]@{
-    Name = "Lake Arrowhead"
-    Number = 3018
-    BackOfficeAccountPasswordStateID = 4174
-    EmailAccountPasswordStateID = "5260"
-},
-[PSCustomObject]@{
     Name = "Mall of America"
     Number = 3015
     BackOfficeAccountPasswordStateID = 4173
