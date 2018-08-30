@@ -634,3 +634,43 @@ function Invoke-nChannelSyncManagerProvision {
     Invoke-ApplicationProvision -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
     #$Nodes = Get-TervisApplicationNode -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
 }
+
+function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
+    $TervisStoreDefinition = Get-TervisStoreDefinition -Name "New Orleans"
+    
+    get-service -ComputerName exchange2016 -Name msExchangeIMAP4 | fl *
+    get-service -ComputerName exchange2016 -Name msExchangeIMAP4 | start-service
+
+    get-service -ComputerName exchange2016 -Name MSExchangeIMAP4BE | start-service
+
+    $TervisStoreDefinition.BackOfficeADUser.samaccountname
+    $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
+
+    get-ExchangeCASMailbox -Identity neworleansstore
+
+    Test-ExchangeImapConnectivity -MailboxCredential $TervisStoreDefinition.BackOfficeUserCredential
+    $Credential = New-Crednetial -Username $TervisStoreDefinition.BackOfficeADUser.UserPrincipalName -Password $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
+    $Result = Test-ExchangeImapConnectivity -MailboxCredential $TervisStoreDefinition.BackOfficeUserCredential
+    $Result = Test-ExchangeImapConnectivity -MailboxCredential $Credential
+    
+
+    $TervisStoreDefinition.MigaduMailboxCredential.UserName
+    $TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password
+    $MigaduEmailServerConfiguration = [PSCustomObject]@{
+        IMAPServerName = "imap.migadu.com"
+        IMAPPort = 993
+        IMAPConnectionSecurity = "SSL/TLS"
+        SMTPServerName = "smtp.migadu.com"
+        SMTPPort = 587
+        SMTPConnectionSecurity = "STARTTLS"
+    }
+
+    "imapsync --host1 exchange2016.tervis.prv --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --justconnect"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justconnect"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justlogin"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes --automap"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --automap"
+
+    
+}
