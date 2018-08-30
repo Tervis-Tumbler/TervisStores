@@ -422,6 +422,7 @@ function Invoke-GivexDeploymentToBackOfficeComputer {
     $ComputerObject | Remove-StandardGiftCardTenderType -Verbose
     $ComputerObject | Add-GivexBalanceCustomPOSButton -Verbose
     $ComputerObject | Add-GivexAdminCustomPOSButton -Verbose
+    $ComputerObject | Set-GivexRMSItemProperties -Verbose
 }
 
 function Invoke-GivexDeploymentToRegisterComputer {
@@ -532,6 +533,24 @@ function Add-GivexAdminCustomPOSButton {
         }
         
         Add-TervisRMSCustomButton @GivexAdminCustomPOSButtonParameters        
+    }    
+}
+
+function Set-GivexRMSItemProperties {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName,
+    ) 
+    begin {
+        $SetItemPropertiesQuery = @"
+UPDATE Item
+SET Taxable = 0, PriceMustBeEntered = 1, LastUpdated = GETDATE()
+WHERE ItemLookupCode = 'GIVEXACT'       
+"@
+    }
+    process {
+        Write-Verbose "$ComputerName - Setting Givex RMS item properties"
+        Invoke-RMSSQL -DataBaseName $DatabaseName -SQLServerName $ComputerName -Query $SetItemPropertiesQuery
     }    
 }
 
