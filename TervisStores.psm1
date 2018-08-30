@@ -138,7 +138,9 @@ function Add-TervisStoreDefinitionCustomProperty {
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name ExchangeMailbox -Force -Value {
             Import-TervisExchangePSSession
-            Get-ExchangeMailbox -Identity $This.BackOfficeUserName
+            if ($This.BackOfficeUserName) {
+                Get-ExchangeMailbox -Identity $This.BackOfficeUserName
+            }
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MailContactADObject -Force -Value {
             $EmailAddress = $This.EmailAddress
@@ -651,8 +653,28 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
     $TervisStoreDefinition.ExchangeMailbox | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $TervisStoreDefinition.ExchangeMailbox.SamAccountName -RequireSenderAuthenticationEnabled $true
     $TervisStoreDefinition.ExchangeMailbox | foreach-object {
         $_ | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $_.SamAccountName -RequireSenderAuthenticationEnabled $true
-    } 
-    
+    }
+
+    $TervisStoreDefinition.ExchangeMailbox.RequireSenderAuthenticationEnabled
+    $TervisStoreDefinition.ExchangeMailbox.AcceptMessagesOnlyFrom
+
+    $TervisStoreDefinition | foreach-object {
+        New-ExchangeMailboxExportRequest -Mailbox $_.ExchangeMailbox.SamAccountName -FilePath "\\exchange2016\e$\ExportedPSTs\$($_.Name) Old Exchange Archive.pst"
+    }
+
+
+    $TervisStoreDefinition | foreach-object {
+        $Name = $_.Name
+        Get-ExchangeMailboxExportRequest -Mailbox $_.ExchangeMailbox.SamAccountName |
+        Get-ExchangeMailboxExportRequestStatistics |
+        Select-Object -Property StatusDetail,PercentComplete, @{n="Name";e={$Name}}
+    }
+
+    $TervisStoreDefinition | Where-object {
+        -not (Get-ExchangeMailboxExportRequest -Mailbox $_.ExchangeMailbox.SamAccountName)
+    } |
+    Select-object Name
+
     $MailboxRequest = New-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName -FilePath "\\exchange2016\e$\ExportedPSTs\$($TervisStoreDefinition.Name) Old Exchange Archive.pst"
     While (-Not ((Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName).Status -match "Complete")) {
         Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName |
@@ -669,6 +691,7 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
     $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
 
     get-ExchangeCASMailbox -Identity neworleansstore
+    $TervisStoreDefinition | ForEach-Object { get-ExchangeCASMailbox -Identity $_.BackOfficeADUser.samaccountname }
 
     Test-ExchangeImapConnectivity -MailboxCredential $TervisStoreDefinition.BackOfficeUserCredential
     $Credential = New-Crednetial -Username $TervisStoreDefinition.BackOfficeADUser.UserPrincipalName -Password $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
@@ -696,5 +719,14 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes --automap"
     wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --automap
 
+
+    $Results = Start-ParallelWork -ScriptBlock {
+        param(
+            $Parameter,
+            $MigaduEmailServerConfiguration
+        )
+
+        wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($Parameter.BackOfficeADUser.UserPrincipalName) --password1 $($Parameter.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($Parameter.MigaduMailboxCredential.UserName) --password2 $($Parameter.MigaduMailboxCredential.GetNetworkCredential().password) --automap
+    } -Parameters $TervisStoreDefinition -OptionalParameters $MigaduEmailServerConfiguration
     
 }
