@@ -649,7 +649,10 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
     $TervisStoreDefinition = Get-TervisStoreDefinition
 
     $TervisStoreDefinition.ExchangeMailbox | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $TervisStoreDefinition.ExchangeMailbox.SamAccountName -RequireSenderAuthenticationEnabled $true
-
+    $TervisStoreDefinition.ExchangeMailbox | foreach-object {
+        $_ | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $_.SamAccountName -RequireSenderAuthenticationEnabled $true
+    } 
+    
     $MailboxRequest = New-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName -FilePath "\\exchange2016\e$\ExportedPSTs\$($TervisStoreDefinition.Name) Old Exchange Archive.pst"
     While (-Not ((Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName).Status -match "Complete")) {
         Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName |
