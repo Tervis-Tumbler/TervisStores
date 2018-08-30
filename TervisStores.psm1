@@ -539,7 +539,7 @@ function Add-GivexAdminCustomPOSButton {
 function Set-GivexRMSItemProperties {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
     ) 
     begin {
         $SetItemPropertiesQuery = @"
