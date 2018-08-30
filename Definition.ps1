@@ -204,12 +204,6 @@
     EmailAccountPasswordStateID = "5275"
 },
 [PSCustomObject]@{
-    Name = "San Antonio"
-    Number = 3014
-    BackOfficeAccountPasswordStateID = 3070
-    EmailAccountPasswordStateID = "5276"
-},
-[PSCustomObject]@{
     Name = "San Diego"
     Number = 3020
     BackOfficeAccountPasswordStateID = 411
