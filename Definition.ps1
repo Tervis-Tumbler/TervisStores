@@ -1,10 +1,4 @@
 ﻿$StoreDefinition = [PSCustomObject]@{
-    Name = "Annapolis"
-    Number = 3026
-    BackOfficeAccountPasswordStateID = 3074
-    EmailAccountPasswordStateID = 5241
-},
-[PSCustomObject]@{
     Name = "Asheville"
     Number = 3028
     BackOfficeAccountPasswordStateID = 3075
