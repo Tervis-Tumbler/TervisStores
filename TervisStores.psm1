@@ -638,19 +638,18 @@ function Invoke-nChannelSyncManagerProvision {
 }
 
 function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
-    param (
-        $StoreName
-    )
-
     $ImapServiceNames = "msExchangeIMAP4", "MSExchangeIMAP4BE"
     $ImapServiceNames |
     ForEach-Object {
         get-service -ComputerName exchange2016 -Name $_ | start-service
     }
+
+    $ImapServiceNames |
+    ForEach-Object {
+        get-service -ComputerName exchange2016 -Name $_ | Restart-service
+    }
     
     $TervisStoreDefinition = Get-TervisStoreDefinition
-
-    $TervisStoreDefinition.ExchangeMailbox | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $TervisStoreDefinition.ExchangeMailbox.SamAccountName -RequireSenderAuthenticationEnabled $true
     $TervisStoreDefinition.ExchangeMailbox | foreach-object {
         $_ | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $_.SamAccountName -RequireSenderAuthenticationEnabled $true
     }
@@ -709,16 +708,12 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
         SMTPPort = 587
         SMTPConnectionSecurity = "STARTTLS"
     }
-    Start-ParallelWork -ScriptBlock {
-        wsl imapsync --host1 exchange2016.tervis.prv --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --justconnect
-    } -Parameters @(1,2,3)
 
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justconnect"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justlogin"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes"
     "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes --automap"
-    wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --automap
-
+    wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $("'"+"$($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password)"+"'") --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $("'"+"$($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password)"+"'") --automap
 
     $Results = Start-ParallelWork -ScriptBlock {
         param(
@@ -726,7 +721,16 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
             $MigaduEmailServerConfiguration
         )
 
-        wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($Parameter.BackOfficeADUser.UserPrincipalName) --password1 $($Parameter.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($Parameter.MigaduMailboxCredential.UserName) --password2 $($Parameter.MigaduMailboxCredential.GetNetworkCredential().password) --automap
+        wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $("'"+"$($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password)"+"'") --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $("'"+"$($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password)"+"'") --automap
     } -Parameters $TervisStoreDefinition -OptionalParameters $MigaduEmailServerConfiguration
     
+}
+
+function Invoke-WindowsSubsystemForLinuxProvision {
+    Invoke-Command -ComputerName $ComputerName -Command {
+        wsl sudo vi /etc/apt/sources.list
+        wsl sudo apt-get update
+        wsl sudo apt-get upgrade
+        wsl sudo apt install -y libjson-webtoken-perl libauthen-ntlm-perl libcgi-pm-perl libcrypt-openssl-rsa-perl libdata-uniqid-perl libfile-copy-recursive-perl libio-socket-inet6-perl libio-socket-ssl-perl libio-tee-perl libhtml-parser-perl libjson-webtoken-perl libmail-imapclient-perl libparse-recdescent-perl libmodule-scandeps-perl libreadonly-perl libregexp-common-perl libsys-meminfo-perl libterm-readkey-perl libtest-mockobject-perl libtest-pod-perl libunicode-string-perl liburi-perl libwww-perl libtest-nowarnings-perl libtest-deep-perl libtest-warn-perl make cpanminus
+    }
 }
