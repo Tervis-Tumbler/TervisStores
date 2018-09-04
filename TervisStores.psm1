@@ -100,8 +100,8 @@ function Get-TervisStoreDefinition {
         $Number
     )
     $StoreDefinition |
-    Where-Object { -Not $Name -or $_.Name -Match $Name } |
-    Where-Object { -Not $Number -or $_.Number -Match $Number } |
+    Where-Object { -Not $Name -or $_.Name -in $Name } |
+    Where-Object { -Not $Number -or $_.Number -in $Number } |
     Add-TervisStoreDefinitionCustomProperty -PassThru
 }
 
@@ -649,7 +649,7 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
         get-service -ComputerName exchange2016 -Name $_ | Restart-service
     }
     
-    $TervisStoreDefinition = Get-TervisStoreDefinition
+    $TervisStoreDefinition = Get-TervisStoreDefinition -Name Indianapolis
     $TervisStoreDefinition.ExchangeMailbox | foreach-object {
         $_ | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $_.SamAccountName -RequireSenderAuthenticationEnabled $true
     }
@@ -721,7 +721,7 @@ function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
             $MigaduEmailServerConfiguration
         )
 
-        wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $("'"+"$($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password)"+"'") --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $("'"+"$($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password)"+"'") --automap
+        wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($Parameter.BackOfficeADUser.UserPrincipalName) --password1 $("'"+"$($Parameter.BackOfficeUserCredential.GetNetworkCredential().password)"+"'") --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($Parameter.MigaduMailboxCredential.UserName) --password2 $("'"+"$($Parameter.MigaduMailboxCredential.GetNetworkCredential().password)"+"'") --automap
     } -Parameters $TervisStoreDefinition -OptionalParameters $MigaduEmailServerConfiguration
     
 }
