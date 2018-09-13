@@ -627,6 +627,28 @@ function Get-GivexStoreCredential {
     }
 }
 
+function Test-TervisStoreGivexInstall {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(ValueFromPipelineByPropertyName)]$IPv4Address
+    )
+    begin {
+        $LocalPathToGivexExe = "C:\Program Files\Microsoft Retail Management System\Store Operations\GivexRegister.exe"
+        #$LocalPathToGcmIni = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
+    }
+    process {
+        if (-not $IPv4Address) {
+            $IPv4Address = Get-ADComputer -Identity $ComputerName -Properties IPv4Address | Select-Object -ExpandProperty IPv4Address
+        }
+        $RemotePathToGivexExe = $LocalPathToGivexExe | ConvertTo-RemotePath -ComputerName $IPv4Address
+        $IsGivexDriverInstalled = Test-Path -Path $RemotePathToGivexExe -ErrorAction SilentlyContinue
+        [PSCustomObject]@{
+            ComputerName = $ComputerName
+            IsGivexDriverInstalled = $IsGivexDriverInstalled
+        }
+    }   
+}
+
 function Invoke-nChannelSyncManagerProvision {
     param (
         $EnvironmentName = "Delta"
