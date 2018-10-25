@@ -608,6 +608,35 @@ function Get-GivexStoreCredential {
     }
 }
 
+function Test-GivexStoreRegisterDeployment {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $GivexDriverPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\GivexRegister.exe"
+        $GcmIniPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
+        $RMSHooksPath = "HKLM:\SOFTWARE\Microsoft\Retail Management System\Store Operations\Hooks\*"
+    }
+    process {
+        $RemoteGivexDriverPath = $GivexDriverPath | ConvertTo-RemotePath -ComputerName $ComputerName
+        $RemoteGcmIniPath = $GcmIniPath | ConvertTo-RemotePath -ComputerName $ComputerName
+        
+        $IsDriverPresent = Test-Path -Path $RemoteGivexDriverPath
+        $IsGcmConfigured = if (Get-Content -Path $RemoteGcmIniPath | Where-Object {$_ -match "PRIMARY_IP_ADDRESS=DC-US1.GIVEX.COM"}) {$true} else {$false}
+        $IsGivexHookPresent = Invoke-Command -ComputerName $ComputerName -ScriptBlock {
+            $GivexRmsHooks = Get-ItemProperty -Path $using:RMSHooksPath | Where-Object {$_.ObjectName -contains "RmsGcm.Rms"}
+            if ($GivexRmsHooks) {$true} else {$false}
+        }
+
+        [PSCustomObject]@{
+            ComputerName = $ComputerName
+            IsDriverPresent = $IsDriverPresent
+            IsGcmConfigured =  $IsGcmConfigured
+            IsGivexHookPresent = $IsGivexHookPresent
+        }
+    }    
+}
+
 function Invoke-nChannelSyncManagerProvision {
     param (
         $EnvironmentName = "Delta"
