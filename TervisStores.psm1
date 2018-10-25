@@ -648,7 +648,7 @@ function Test-GivexStoreRegisterDeployment {
         $RemoteGcmIniPath = $GcmIniPath | ConvertTo-RemotePath -ComputerName $ComputerName
         
         $IsDriverPresent = Test-Path -Path $RemoteGivexDriverPath
-        $IsGcmConfigured = if (Get-Content -Path $RemoteGcmIniPath | Where-Object {$_ -match "PRIMARY_IP_ADDRESS=DC-US1.GIVEX.COM"}) {$true} else {$false}
+        $IsGcmConfigured = if (Get-Content -Path $RemoteGcmIniPath | Where-Object {$_ -match "REFUND_TRANS=906"}) {$true} else {$false}
         $IsGivexHookPresent = Invoke-Command -ComputerName $ComputerName -ScriptBlock {
             $GivexRmsHooks = Get-ItemProperty -Path $using:RMSHooksPath | Where-Object {$_.ObjectName -contains "RmsGcm.Rms"}
             if ($GivexRmsHooks) {$true} else {$false}

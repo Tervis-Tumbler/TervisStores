@@ -101,7 +101,7 @@ DISCOUNT_DESCRIPTION=PROMOTION
 # 905 = Givex Increment transaction service.
 # 906 = Givex Activate transaction service.
 # 908 = Givex Adjustment transaction service.
-REFUND_TRANS=908
+REFUND_TRANS=906
 
 # ALLOW_VOID - Determines if Givex Activate and Givex Increment transactions can be voided
 #              or refunded.
