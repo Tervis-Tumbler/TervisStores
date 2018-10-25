@@ -445,7 +445,8 @@ function Invoke-GivexDeploymentToRegisterComputer {
         
 function Install-GivexRMSPlugin {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [switch]$Force
     )
     begin {
         $PackageSource = "\\$env:USERDNSDOMAIN\applications\Chocolatey\givexrmsplugin.1.4.0.261702.nupkg"
@@ -456,7 +457,11 @@ function Install-GivexRMSPlugin {
         Copy-ItemToRemoteComputerWithBitsTransfer -ComputerName $ComputerName -Source $PackageSource -DestinationLocal $DestinationLocal        
         Invoke-Command -ComputerName $ComputerName -ScriptBlock {
             choco install chocolatey-uninstall.extension -y
-            choco install $Using:DestinationLocal -y
+            if ($using:Force){
+                choco install $Using:DestinationLocal -yf
+            } else {
+                choco install $Using:DestinationLocal -y
+            }
         }
     }
 }
