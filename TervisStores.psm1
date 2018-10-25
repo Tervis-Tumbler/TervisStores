@@ -100,8 +100,8 @@ function Get-TervisStoreDefinition {
         $Number
     )
     $StoreDefinition |
-    Where-Object { -Not $Name -or $_.Name -Match $Name } |
-    Where-Object { -Not $Number -or $_.Number -Match $Number } |
+    Where-Object { -Not $Name -or $_.Name -in $Name } |
+    Where-Object { -Not $Number -or $_.Number -in $Number } |
     Add-TervisStoreDefinitionCustomProperty -PassThru
 }
 
@@ -138,7 +138,9 @@ function Add-TervisStoreDefinitionCustomProperty {
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name ExchangeMailbox -Force -Value {
             Import-TervisExchangePSSession
-            Get-ExchangeMailbox -Identity $This.BackOfficeUserName
+            if ($This.BackOfficeUserName) {
+                Get-ExchangeMailbox -Identity $This.BackOfficeUserName
+            }
         } -PassThru |
         Add-Member -MemberType ScriptProperty -Name MailContactADObject -Force -Value {
             $EmailAddress = $This.EmailAddress
@@ -422,6 +424,7 @@ function Invoke-GivexDeploymentToBackOfficeComputer {
     $ComputerObject | Remove-StandardGiftCardTenderType -Verbose
     $ComputerObject | Add-GivexBalanceCustomPOSButton -Verbose
     $ComputerObject | Add-GivexAdminCustomPOSButton -Verbose
+    $ComputerObject | Set-GivexRMSItemProperties -Verbose
 }
 
 function Invoke-GivexDeploymentToRegisterComputer {
@@ -535,6 +538,24 @@ function Add-GivexAdminCustomPOSButton {
     }    
 }
 
+function Set-GivexRMSItemProperties {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$DatabaseName
+    ) 
+    begin {
+        $SetItemPropertiesQuery = @"
+UPDATE Item
+SET Taxable = 0, PriceMustBeEntered = 1, LastUpdated = GETDATE()
+WHERE ItemLookupCode = 'GIVEXACT'       
+"@
+    }
+    process {
+        Write-Verbose "$ComputerName - Setting Givex RMS item properties"
+        Invoke-RMSSQL -DataBaseName $DatabaseName -SQLServerName $ComputerName -Query $SetItemPropertiesQuery
+    }    
+}
+
 function Install-GivexGcmIniFile_DEV {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
@@ -634,7 +655,29 @@ function Test-GivexStoreRegisterDeployment {
             IsGcmConfigured =  $IsGcmConfigured
             IsGivexHookPresent = $IsGivexHookPresent
         }
-    }    
+    }
+}
+
+function Test-TervisStoreGivexInstall {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        [Parameter(ValueFromPipelineByPropertyName)]$IPv4Address
+    )
+    begin {
+        $LocalPathToGivexExe = "C:\Program Files\Microsoft Retail Management System\Store Operations\GivexRegister.exe"
+        #$LocalPathToGcmIni = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
+    }
+    process {
+        if (-not $IPv4Address) {
+            $IPv4Address = Get-ADComputer -Identity $ComputerName -Properties IPv4Address | Select-Object -ExpandProperty IPv4Address
+        }
+        $RemotePathToGivexExe = $LocalPathToGivexExe | ConvertTo-RemotePath -ComputerName $IPv4Address
+        $IsGivexDriverInstalled = Test-Path -Path $RemotePathToGivexExe -ErrorAction SilentlyContinue
+        [PSCustomObject]@{
+            ComputerName = $ComputerName
+            IsGivexDriverInstalled = $IsGivexDriverInstalled
+        }
+    }   
 }
 
 function Invoke-nChannelSyncManagerProvision {
@@ -643,4 +686,102 @@ function Invoke-nChannelSyncManagerProvision {
     )
     Invoke-ApplicationProvision -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
     #$Nodes = Get-TervisApplicationNode -ApplicationName nChannelSyncManager -EnvironmentName $EnvironmentName
+}
+
+function Invoke-StoreExchangeMailboxToMigaduMailboxMigration {
+    $ImapServiceNames = "msExchangeIMAP4", "MSExchangeIMAP4BE"
+    $ImapServiceNames |
+    ForEach-Object {
+        get-service -ComputerName exchange2016 -Name $_ | start-service
+    }
+
+    $ImapServiceNames |
+    ForEach-Object {
+        get-service -ComputerName exchange2016 -Name $_ | Restart-service
+    }
+    
+    $TervisStoreDefinition = Get-TervisStoreDefinition -Name Indianapolis
+    $TervisStoreDefinition.ExchangeMailbox | foreach-object {
+        $_ | Set-ExchangeMailbox -AcceptMessagesOnlyFrom $_.SamAccountName -RequireSenderAuthenticationEnabled $true
+    }
+
+    $TervisStoreDefinition.ExchangeMailbox.RequireSenderAuthenticationEnabled
+    $TervisStoreDefinition.ExchangeMailbox.AcceptMessagesOnlyFrom
+
+    $TervisStoreDefinition | foreach-object {
+        New-ExchangeMailboxExportRequest -Mailbox $_.ExchangeMailbox.SamAccountName -FilePath "\\exchange2016\e$\ExportedPSTs\$($_.Name) Old Exchange Archive.pst"
+    }
+
+
+    $TervisStoreDefinition | foreach-object {
+        $Name = $_.Name
+        Get-ExchangeMailboxExportRequest -Mailbox $_.ExchangeMailbox.SamAccountName |
+        Get-ExchangeMailboxExportRequestStatistics |
+        Select-Object -Property StatusDetail,PercentComplete, @{n="Name";e={$Name}}
+    }
+
+    $TervisStoreDefinition | Where-object {
+        -not (Get-ExchangeMailboxExportRequest -Mailbox $_.ExchangeMailbox.SamAccountName)
+    } |
+    Select-object Name
+
+    $MailboxRequest = New-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName -FilePath "\\exchange2016\e$\ExportedPSTs\$($TervisStoreDefinition.Name) Old Exchange Archive.pst"
+    While (-Not ((Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName).Status -match "Complete")) {
+        Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName |
+        Get-ExchangeMailboxExportRequestStatistics |
+        Select-Object -Property StatusDetail,PercentComplete
+        Start-Sleep 60
+    }
+
+    Get-ExchangeMailboxExportRequest -Mailbox $TervisStoreDefinition.ExchangeMailbox.SamAccountName | 
+    Remove-ExchangeMailboxExportRequest -Force
+
+
+    $TervisStoreDefinition.BackOfficeADUser.samaccountname
+    $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
+
+    get-ExchangeCASMailbox -Identity neworleansstore
+    $TervisStoreDefinition | ForEach-Object { get-ExchangeCASMailbox -Identity $_.BackOfficeADUser.samaccountname }
+
+    Test-ExchangeImapConnectivity -MailboxCredential $TervisStoreDefinition.BackOfficeUserCredential
+    $Credential = New-Crednetial -Username $TervisStoreDefinition.BackOfficeADUser.UserPrincipalName -Password $TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password
+    $Result = Test-ExchangeImapConnectivity -MailboxCredential $TervisStoreDefinition.BackOfficeUserCredential
+    $Result = Test-ExchangeImapConnectivity -MailboxCredential $Credential
+    
+
+    $TervisStoreDefinition.MigaduMailboxCredential.UserName
+    $TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password
+    $MigaduEmailServerConfiguration = [PSCustomObject]@{
+        IMAPServerName = "imap.migadu.com"
+        IMAPPort = 993
+        IMAPConnectionSecurity = "SSL/TLS"
+        SMTPServerName = "smtp.migadu.com"
+        SMTPPort = 587
+        SMTPConnectionSecurity = "STARTTLS"
+    }
+
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justconnect"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justlogin"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes"
+    "imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password) --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password) --justfoldersizes --automap"
+    wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($TervisStoreDefinition.BackOfficeADUser.UserPrincipalName) --password1 $("'"+"$($TervisStoreDefinition.BackOfficeUserCredential.GetNetworkCredential().password)"+"'") --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($TervisStoreDefinition.MigaduMailboxCredential.UserName) --password2 $("'"+"$($TervisStoreDefinition.MigaduMailboxCredential.GetNetworkCredential().password)"+"'") --automap
+
+    $Results = Start-ParallelWork -ScriptBlock {
+        param(
+            $Parameter,
+            $MigaduEmailServerConfiguration
+        )
+
+        wsl imapsync --host1 exchange2016.tervis.prv --exchange1 --user1 $($Parameter.BackOfficeADUser.UserPrincipalName) --password1 $("'"+"$($Parameter.BackOfficeUserCredential.GetNetworkCredential().password)"+"'") --host2 $($MigaduEmailServerConfiguration.IMAPServerName) --user2 $($Parameter.MigaduMailboxCredential.UserName) --password2 $("'"+"$($Parameter.MigaduMailboxCredential.GetNetworkCredential().password)"+"'") --automap
+    } -Parameters $TervisStoreDefinition -OptionalParameters $MigaduEmailServerConfiguration
+    
+}
+
+function Invoke-WindowsSubsystemForLinuxProvision {
+    Invoke-Command -ComputerName $ComputerName -Command {
+        wsl sudo vi /etc/apt/sources.list
+        wsl sudo apt-get update
+        wsl sudo apt-get upgrade
+        wsl sudo apt install -y libjson-webtoken-perl libauthen-ntlm-perl libcgi-pm-perl libcrypt-openssl-rsa-perl libdata-uniqid-perl libfile-copy-recursive-perl libio-socket-inet6-perl libio-socket-ssl-perl libio-tee-perl libhtml-parser-perl libjson-webtoken-perl libmail-imapclient-perl libparse-recdescent-perl libmodule-scandeps-perl libreadonly-perl libregexp-common-perl libsys-meminfo-perl libterm-readkey-perl libtest-mockobject-perl libtest-pod-perl libunicode-string-perl liburi-perl libwww-perl libtest-nowarnings-perl libtest-deep-perl libtest-warn-perl make cpanminus
+    }
 }

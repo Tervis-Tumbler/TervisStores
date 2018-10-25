@@ -1,10 +1,4 @@
 ﻿$StoreDefinition = [PSCustomObject]@{
-    Name = "Annapolis"
-    Number = 3026
-    BackOfficeAccountPasswordStateID = 3074
-    EmailAccountPasswordStateID = 5241
-},
-[PSCustomObject]@{
     Name = "Asheville"
     Number = 3028
     BackOfficeAccountPasswordStateID = 3075
@@ -16,18 +10,6 @@
     Number = 3052
     BackOfficeAccountPasswordStateID = 3932
     EmailAccountPasswordStateID = "5243"    
-},
-[PSCustomObject]@{
-    Name = "Austin"
-    Number = 3025
-    BackOfficeAccountPasswordStateID = 3076
-    EmailAccountPasswordStateID = "5244"
-},
-[PSCustomObject]@{
-    Name = "Blowing Rock"
-    Number = 3016
-    BackOfficeAccountPasswordStateID = 4175
-    EmailAccountPasswordStateID = "5245"
 },
 [PSCustomObject]@{
     Name = "Boston"
@@ -52,12 +34,6 @@
     Number = 3046
     BackOfficeAccountPasswordStateID = 3708
     EmailAccountPasswordStateID = "5249"
-},
-[PSCustomObject]@{
-    Name = "Columbus"
-    Number = 3045
-    BackOfficeAccountPasswordStateID = 3626
-    EmailAccountPasswordStateID = "5250"
 },
 [PSCustomObject]@{
     Name = "Destin"
@@ -114,12 +90,6 @@
     EmailAccountPasswordStateID = "5259"    
 },
 [PSCustomObject]@{
-    Name = "Lake Arrowhead"
-    Number = 3018
-    BackOfficeAccountPasswordStateID = 4174
-    EmailAccountPasswordStateID = "5260"
-},
-[PSCustomObject]@{
     Name = "Mall of America"
     Number = 3015
     BackOfficeAccountPasswordStateID = 4173
@@ -132,22 +102,10 @@
     EmailAccountPasswordStateID = "5262"
 },
 [PSCustomObject]@{
-    Name = "Monterey"
-    Number = 3023
-    BackOfficeAccountPasswordStateID = 3089
-    EmailAccountPasswordStateID = "5263"
-},
-[PSCustomObject]@{
     Name = "Myrtle Beach"
     Number = 2010
     BackOfficeAccountPasswordStateID = 3090
     EmailAccountPasswordStateID = "5264"
-},
-[PSCustomObject]@{
-    Name = "Naples"
-    Number = 3024
-    BackOfficeAccountPasswordStateID = 3068
-    EmailAccountPasswordStateID = "5265"
 },
 [PSCustomObject]@{
     Name = "National Harbor"
@@ -156,22 +114,10 @@
     EmailAccountPasswordStateID = "5266"
 },
 [PSCustomObject]@{
-    Name = "New Orleans"
-    Number = 3042
-    BackOfficeAccountPasswordStateID = 3571
-    EmailAccountPasswordStateID = "5267"
-},
-[PSCustomObject]@{
     Name = "Newport"
     Number = 3033
     BackOfficeAccountPasswordStateID = 3092
     EmailAccountPasswordStateID = "5268"
-},
-[PSCustomObject]@{
-    Name = "Orange Beach"
-    Number = 3008
-    BackOfficeAccountPasswordStateID = 3093
-    EmailAccountPasswordStateID = "5269"
 },
 [PSCustomObject]@{
     Name = "Orlando"
@@ -204,24 +150,6 @@
     EmailAccountPasswordStateID = "5275"
 },
 [PSCustomObject]@{
-    Name = "San Antonio"
-    Number = 3014
-    BackOfficeAccountPasswordStateID = 3070
-    EmailAccountPasswordStateID = "5276"
-},
-[PSCustomObject]@{
-    Name = "San Diego"
-    Number = 3020
-    BackOfficeAccountPasswordStateID = 411
-    EmailAccountPasswordStateID = "5277"
-},
-[PSCustomObject]@{
-    Name = "Savannah"
-    Number = 3005
-    BackOfficeAccountPasswordStateID = 247
-    EmailAccountPasswordStateID = "5278"
-},
-[PSCustomObject]@{
     Name = "Sedona Store"
     Number = 3039
     BackOfficeAccountPasswordStateID = 3098
@@ -238,12 +166,6 @@
     Number = 3040
     BackOfficeAccountPasswordStateID = 3073
     EmailAccountPasswordStateID = "5281"
-},
-[PSCustomObject]@{
-    Name = "St Pete"
-    Number = 3049
-    BackOfficeAccountPasswordStateID = 3869
-    EmailAccountPasswordStateID = "5282"
 },
 [PSCustomObject]@{
     Name = "Tampa"
