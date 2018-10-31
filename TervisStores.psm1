@@ -663,6 +663,62 @@ function Test-GivexStoreRegisterDeployment {
     }
 }
 
+function Test-GivexStoreBackOfficeDeployment {
+    param (
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $ItemQuery = @"
+SELECT ItemLookupCode,Taxable,PriceMustBeEntered FROM Item
+WHERE ItemLookupCode = 'GIVEXACT'
+"@    
+    
+        $TenderQuery = @"
+SELECT Code,[Description] FROM Tender
+WHERE [Description] IN ('Givex Gift Certificate','GiftCard')
+"@    
+    
+        $ButtonsQuery = @"
+SELECT [Description],Command FROM CustomButtons
+WHERE [Description] IN ('Givex Balance Button','Givex Admin Button')   
+"@
+    }
+    process {
+        $DatabaseName = Get-RMSDatabaseName -ComputerName $ComputerName | Select-Object -ExpandProperty RMSDatabaseName
+        $ComputerObject = [PSCustomObject]@{
+            ComputerName = $ComputerName
+            DatabaseName = $DatabaseName
+        }
+
+        $Item = Invoke-RMSSQL -DataBaseName $ComputerObject.DatabaseName -SQLServerName $ComputerObject.ComputerName -Query $ItemQuery
+        $TenderType = Invoke-RMSSQL -DataBaseName $ComputerObject.DatabaseName -SQLServerName $ComputerObject.ComputerName -Query $TenderQuery
+        $Button = Invoke-RMSSQL -DataBaseName $ComputerObject.DatabaseName -SQLServerName $ComputerObject.ComputerName -Query $ButtonsQuery
+        
+        $IsGivexItemSetCorrectly = if (
+            $Item.Taxable -eq 0 -and
+            $Item.PriceMustBeEntered -eq 1  
+        ) {$true} else {$false}
+        
+        $IsGivexTenderTypeSetCorrectly = if (
+            "GIVEX" -in $TenderType.Code -and
+            "Gift Card" -notin $TenderType.Code
+        ) {$true} else {$false}
+    
+        $IsGivexButtonPresent = if (
+            "Givex Balance Button" -in $Button.Description -and
+            "Givex Admin Button" -in $Button.Description
+        ) {$true} else {$false}
+    
+        [PSCustomObject]@{
+            ComputerName = $ComputerObject.ComputerName
+            IsGivexItemSetCorrectly = $IsGivexItemSetCorrectly
+            IsGivexTenderTypeSetCorrectly = $IsGivexTenderTypeSetCorrectly
+            IsGivexButtonPresent = $IsGivexButtonPresent
+        }
+    }
+}
+
+
 function Invoke-nChannelSyncManagerProvision {
     param (
         $EnvironmentName = "Delta"
