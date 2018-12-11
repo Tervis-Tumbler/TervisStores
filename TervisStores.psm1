@@ -587,7 +587,8 @@ function Install-GivexGcmIniFile_DEV {
 
 function Install-GivexGcmIniFile {
     param (
-        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName,
+        $OverrideOutputPath
     )
     begin {
         $GcmIniLocalPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
@@ -603,8 +604,13 @@ function Install-GivexGcmIniFile {
         }
 
         $GcmIniContent = Invoke-ProcessTemplateFile -TemplateFile $PSScriptRoot\Templates\gcm.ini.pstemplate -TemplateVariables $TemplateVariables
-        $RemoteGcmIniPath = $GcmIniLocalPath | ConvertTo-RemotePath -ComputerName $ComputerName
-        $GcmIniContent | Out-File -FilePath $RemoteGcmIniPath -Force -Encoding utf8
+        if ($OverrideOutputPath) {
+            $OutputPath = $OverrideOutputPath
+        } else {
+            $OutputPath = $RemoteGcmIniPath = $GcmIniLocalPath | ConvertTo-RemotePath -ComputerName $ComputerName
+        }
+        
+        $GcmIniContent | Out-File -FilePath $OutputPath -Force -Encoding utf8
     }    
 }
 
@@ -632,6 +638,39 @@ function Get-GivexStoreCredential {
             Write-Warning "$ComputerName - No Givex credential found"
         }
     }
+}
+
+function Add-GivexStoreCredentialToPasswordstate {
+    param (
+        [Parameter(Mandatory)]$UserId,
+        [Parameter(Mandatory)]$UserPassword,
+        [Parameter(Mandatory)]$RMSStoreCode,
+        [Parameter(Mandatory)]$OutletId,
+        [Parameter(Mandatory)]$UserDescription
+    )
+    $CurrentCredentialArray = Get-GivexStoreCredentialTable
+    
+    $StoreRef = $UserDescription.split(" ")[0]
+    $StoreName = $UserDescription.split(" ")[2]
+    $MerchantId = $CurrentCredentialArray[0]."Merchant ID"
+    
+    $CurrentCredentialArray += [PSCustomObject]@{
+        "Store Ref" = $StoreRef
+        StoreCode = $RMSStoreCode
+        StoreName = $StoreName
+        "User Description" = $UserDescription
+        "User ID" = $UserId
+        "User Password" = $UserPassword
+        "Store ID" = $OutletId
+        "Merchant ID" = $MerchantId
+    }
+
+     $NewJson = $CurrentCredentialArray | ConvertTo-Json -Compress
+
+     $CurrentPasswordstateEntry = Get-PasswordstatePassword -ID 5526
+     $CurrentPasswordstateEntry.GenericField1 = $NewJson
+     $ParamHashTable = ConvertTo-HashTable -Object $CurrentPasswordstateEntry | Remove-HashtableKeysWithEmptyOrNullValues 
+     Set-PasswordstatePassword @ParamHashTable
 }
 
 function Test-GivexStoreRegisterDeployment {
