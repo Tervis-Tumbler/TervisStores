@@ -863,3 +863,21 @@ function Invoke-WindowsSubsystemForLinuxProvision {
         wsl sudo apt install -y libjson-webtoken-perl libauthen-ntlm-perl libcgi-pm-perl libcrypt-openssl-rsa-perl libdata-uniqid-perl libfile-copy-recursive-perl libio-socket-inet6-perl libio-socket-ssl-perl libio-tee-perl libhtml-parser-perl libjson-webtoken-perl libmail-imapclient-perl libparse-recdescent-perl libmodule-scandeps-perl libreadonly-perl libregexp-common-perl libsys-meminfo-perl libterm-readkey-perl libtest-mockobject-perl libtest-pod-perl libunicode-string-perl liburi-perl libwww-perl libtest-nowarnings-perl libtest-deep-perl libtest-warn-perl make cpanminus
     }
 }
+
+function Invoke-ReplaceRemoteFileWithSameName {
+    param (
+        [Parameter(Mandatory)]$Source,
+        [Parameter(Mandatory)]$LocalDestination,
+        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+    )
+    begin {
+        $Date = Get-Date -Format yyyyMMdd_HHmmss
+        $FileNameToBeReplaced = [System.IO.DirectoryInfo]::($LocalDestination).Name
+        $NewFileName = "$FileNameToBeReplaced.$Date.bak"
+    }
+    process {
+        $RemoteLocation = $LocalDestination | ConvertTo-RemotePath -ComputerName $ComputerName
+        Rename-Item -Path $RemoteLocation -NewName $NewFileName -Force
+        Copy-Item -Path $Source -Destination $RemoteLocation
+    }
+}
