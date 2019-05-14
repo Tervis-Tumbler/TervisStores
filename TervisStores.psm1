@@ -881,3 +881,29 @@ function Invoke-ReplaceRemoteFileWithSameName {
         Copy-Item -Path $Source -Destination $RemoteLocation
     }
 }
+
+function Add-EBSItemNumberToUpcCsv {
+    param (
+        [Parameter(Mandatory)]$InputCsv,
+        [Parameter(Mandatory)]$OutputCsv,
+        [Parameter(Mandatory)]$UpcHeaderTitle
+    )
+
+    Set-TervisEBSEnvironment -Name Production
+    
+    $CsvData = Import-Csv -Path $InputCsv
+    $OutputData = $CsvData | ForEach-Object {
+        $Query = @"
+                SELECT
+                    items.SEGMENT1 AS ITEM_NUMBER
+                FROM mtl_system_items_b items
+                LEFT JOIN apps.mtl_cross_references xref ON items.INVENTORY_ITEM_ID = xref.INVENTORY_ITEM_ID
+                WHERE xref.CROSS_REFERENCE_TYPE = 'UPC' 
+                AND items.ORGANIZATION_ID = 85
+                AND xref.CROSS_REFERENCE = '$($_.$UpcHeaderTitle)'
+"@
+        $EbsItemNumber = Invoke-EBSSQL -SQLCommand $Query | Select-Object -First 1 -ExpandProperty ITEM_NUMBER
+        $_ | Add-Member -MemberType NoteProperty -Name EbsItemNumber -Value $EbsItemNumber -Force -PassThru
+    }
+    $OutputData | Export-Csv -Path $OutputCsv -NoTypeInformation
+}
