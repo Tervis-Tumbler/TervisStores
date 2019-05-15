@@ -890,9 +890,11 @@ function Add-EBSItemNumberToUpcCsv {
     )
 
     Set-TervisEBSEnvironment -Name Production
-    
+    $i = 0
     $CsvData = Import-Csv -Path $InputCsv
     $OutputData = $CsvData | ForEach-Object {
+        $i++
+        Write-Progress -Activity "Processing UPCs" -PercentComplete ($i * 100 / $CsvData.count) -Status "$i of $($CsvData.count)"
         $Query = @"
                 SELECT
                     items.SEGMENT1 AS ITEM_NUMBER
