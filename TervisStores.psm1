@@ -592,6 +592,7 @@ function Install-GivexGcmIniFile {
     )
     begin {
         $GcmIniLocalPath = "C:\Program Files\Microsoft Retail Management System\Store Operations\gcm.ini"
+        $GcmIniLocalPath64 = "C:\Program Files (x86)\Microsoft Retail Management System\Store Operations\gcm.ini"
         $GivexStoreCredentialTable = Get-GivexStoreCredentialTable
     }
     process {
@@ -608,9 +609,14 @@ function Install-GivexGcmIniFile {
             $OutputPath = $OverrideOutputPath
         } else {
             $OutputPath = $RemoteGcmIniPath = $GcmIniLocalPath | ConvertTo-RemotePath -ComputerName $ComputerName
+            $OutputPath64 = $RemoteGcmIniPath = $GcmIniLocalPath64 | ConvertTo-RemotePath -ComputerName $ComputerName
         }
         
-        $GcmIniContent | Out-File -FilePath $OutputPath -Force -Encoding utf8
+        try {
+            $GcmIniContent | Out-File -FilePath $OutputPath -Force -Encoding utf8
+        } catch {
+            $GcmIniContent | Out-File -FilePath $OutputPath64 -Force -Encoding utf8
+        }
     }    
 }
 
